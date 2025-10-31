@@ -1,0 +1,29 @@
+{
+  "name": "eg-tareas-node",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend con paginación para el ejemplo de tareas",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "tsx watch src/index.ts",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "@stylistic/eslint-plugin": "^5.5.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.9.2",
+    "eslint": "^9.39.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2"
+  }
+}
