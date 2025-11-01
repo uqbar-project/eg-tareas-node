@@ -5,7 +5,7 @@ export const errorMiddleware = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) => {
   console.error(`[Error Middleware] ${err.name}: ${err.message}`)
   if (err instanceof NotFoundError) {

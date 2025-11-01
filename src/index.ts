@@ -1,4 +1,4 @@
-import express, { type NextFunction, type Request, type Response } from 'express'
+import express from 'express'
 import asyncHandler from 'express-async-handler'
 import { getTareas, updateTarea } from './controller/tareaController.js'
 import type { TareaDto } from './domain/tarea.js'

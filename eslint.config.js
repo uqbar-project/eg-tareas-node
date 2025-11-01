@@ -19,6 +19,15 @@ export default tseslint.config(
     rules: {
       '@stylistic/semi': ['error', 'never'],
       '@stylistic/member-delimiter-style': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          args: 'after-used',
+        },
+      ],
     },
   },
 )
