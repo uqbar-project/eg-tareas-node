@@ -3,21 +3,21 @@ import { NotFoundError } from '../errors/errors.js'
 import { tareaRepository } from '../repository/tareaRepository.js'
 
 export interface PageTareas {
-  page: number;
-  total: number;
-  data: TareaDto[];
+  page: number
+  total: number
+  data: TareaDto[]
 }
 
 class TareasService {
-  getTareas(page: number, limit: number): PageTareas {
-    const data = tareaRepository.getTareas()
+  async getTareas(page: number, limit: number): Promise<PageTareas> {
+    const data = await tareaRepository.getTareas()
     const total = data.length
     const dataPaginada = data.slice((page - 1) * limit, page * limit)
     return { page, total, data: dataPaginada }
   }
 
-  updateTarea(id: number, dto: TareaDto): TareaDto | undefined {
-    const tarea = tareaRepository.getTareaById(id)
+  async updateTarea(id: number, dto: TareaDto): Promise<TareaDto> {
+    const tarea = await tareaRepository.getTareaById(id)
     if (!tarea) {
       throw new NotFoundError(`Tarea ${id} no encontrada`)
     }

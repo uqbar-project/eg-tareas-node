@@ -32,11 +32,11 @@ export const generarTareas = (cantidad: number = 10): Tarea[] => {
 class TareaRepository {
   constructor(private tareas: Tarea[] = generarTareas(450)) {}
 
-  getTareas(): TareaDto[] {
+  async getTareas(): Promise<TareaDto[]> {
     return this.tareas.map(tarea => tarea.toDto())
   }
 
-  getTareaById(id: number): TareaDto | undefined {
+  async getTareaById(id: number): Promise<TareaDto | undefined> {
     return this.tareas.find(tarea => tarea.id === id)?.toDto()
   }
 }

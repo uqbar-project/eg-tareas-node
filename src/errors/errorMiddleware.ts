@@ -1,10 +1,11 @@
-import type { Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import { DomainError, NotFoundError } from './errors.js'
 
 export const errorMiddleware = (
   err: Error,
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   console.error(`[Error Middleware] ${err.name}: ${err.message}`)
   if (err instanceof NotFoundError) {
