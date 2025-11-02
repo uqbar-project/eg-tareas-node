@@ -13,7 +13,7 @@ class TareasService {
   async getTareaById(id: number) {
     const tarea = await tareaRepository.getTareaById(id)
     if (!tarea) throw new NotFoundError(`Tarea ${id} no encontrada`)
-    return tarea
+    return tarea.toDto()
   }
 
   async getTareas(page: number, limit: number): Promise<PageTareas> {
