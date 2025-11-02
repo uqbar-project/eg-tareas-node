@@ -4,16 +4,21 @@ import { tareaRepository } from '../repository/tareaRepository.js'
 
 export interface PageTareas {
   page: number
-  total: number
+  hasMore: boolean
   data: TareaDto[]
 }
 
 class TareasService {
   async getTareas(page: number, limit: number): Promise<PageTareas> {
     const data = await tareaRepository.getTareas()
-    const total = data.length
+    if (limit === 0) return { page, hasMore: false, data }
+    const queryLimit = limit + 1
+    const startIndex = (page - 1) * limit
+    const allData = await tareaRepository.getTareas()
+    const dataConExtra = allData.slice(startIndex, startIndex + queryLimit)
+    const hasMore = dataConExtra.length > limit
     const dataPaginada = data.slice((page - 1) * limit, page * limit)
-    return { page, total, data: dataPaginada }
+    return { page, hasMore, data: dataPaginada }
   }
 
   async updateTarea(id: number, dto: TareaDto): Promise<TareaDto> {

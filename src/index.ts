@@ -3,11 +3,14 @@ import asyncHandler from 'express-async-handler'
 import { getTareas, updateTarea } from './controller/tareaController.js'
 import type { TareaDto } from './domain/tarea.js'
 import { errorMiddleware } from './errors/errorMiddleware.js'
+import cors from 'cors'
 
 const app = express()
 const PORT = process.env.PORT || 9000
 
 app.use(express.json())
+
+app.use(cors())
 
 app.get('/tareas', asyncHandler(async (req, res) => {
   const { page, limit } = req.query
