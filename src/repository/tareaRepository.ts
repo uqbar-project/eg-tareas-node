@@ -2,9 +2,11 @@ import { faker } from '@faker-js/faker/locale/es'
 import { Tarea } from '../domain/tarea.js'
 import { usuarioRepository } from './usuarioRepository.js'
 
+let ultimoId = 1
+
 const crearTareaFalsa = async (): Promise<Tarea> => {
   const tarea = new Tarea()
-  tarea.id = faker.number.int()
+  tarea.id = ultimoId++
   tarea.descripcion = faker.lorem.sentence(5)
   tarea.iteracion = `Sprint ${faker.number.int({ min: 1, max: 4 })}`
   if (faker.datatype.boolean()) {

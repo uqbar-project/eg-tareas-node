@@ -10,6 +10,12 @@ export interface PageTareas {
 }
 
 class TareasService {
+  async getTareaById(id: number) {
+    const tarea = await tareaRepository.getTareaById(id)
+    if (!tarea) throw new NotFoundError(`Tarea ${id} no encontrada`)
+    return tarea
+  }
+
   async getTareas(page: number, limit: number): Promise<PageTareas> {
     const allTareas = await tareaRepository.getTareas()
     const toDTO = (tarea: Tarea) => tarea.toDto()

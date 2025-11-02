@@ -15,4 +15,6 @@ Además, el servicio nos devuelve el total de tareas para que podamos calcular e
 
 También agregamos un middleware de manejo de errores para que podamos manejar los errores de manera centralizada, como en Springboot.
 
+El autowire de Springboot se hace mediante una inyección de dependencias manual.
+
 Utilizamos el servicio de faker para generar una buena cantidad de tareas.

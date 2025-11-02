@@ -1,6 +1,6 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
-import { getTareas, updateTarea } from './controller/tareaController.js'
+import { getTareaById, getTareas, updateTarea } from './controller/tareaController.js'
 import type { TareaDto } from './domain/tarea.js'
 import { errorMiddleware } from './errors/errorMiddleware.js'
 import cors from 'cors'
@@ -17,6 +17,12 @@ app.get('/tareas', asyncHandler(async (req, res) => {
   const { page, limit } = req.query
   const respuestaPaginada = await getTareas(page as string, limit as string)
   res.json(respuestaPaginada)
+}))
+
+app.get('/tareas/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params
+  const tarea = await getTareaById(id as string)
+  res.json(tarea)
 }))
 
 app.get('/usuarios', asyncHandler(async (req, res) => {
