@@ -17,7 +17,7 @@ export class Tarea {
       id: this.id!,
       descripcion: this.descripcion,
       iteracion: this.iteracion,
-      asignatario: this.asignatario?.nombre,
+      asignadoA: this.asignatario?.nombre,
       fecha: this.fecha.toLocaleDateString('es-AR'),
       porcentajeCumplimiento: this.porcentajeCumplimiento,
     }
@@ -28,7 +28,7 @@ export interface TareaDto {
   id: number
   descripcion: string
   iteracion: string
-  asignatario: string | undefined
+  asignadoA: string | undefined
   fecha: string
   porcentajeCumplimiento: number
 }

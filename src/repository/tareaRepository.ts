@@ -1,43 +1,43 @@
-import { faker } from '@faker-js/faker/locale/es' // Usamos faker en español
-import { Tarea, Usuario, type TareaDto } from '../domain/tarea.js' // <-- ¡Importante usar .js!
+import { faker } from '@faker-js/faker/locale/es'
+import { Tarea } from '../domain/tarea.js'
+import { usuarioRepository } from './usuarioRepository.js'
 
-const crearUsuarioFalso = (): Usuario => {
-  const usuario = new Usuario()
-  usuario.id = faker.string.uuid()
-  usuario.nombre = faker.person.fullName()
-  usuario.email = faker.internet.email()
-  return usuario
-}
-
-const crearTareaFalsa = (): Tarea => {
+const crearTareaFalsa = async (): Promise<Tarea> => {
   const tarea = new Tarea()
   tarea.id = faker.number.int()
   tarea.descripcion = faker.lorem.sentence(5)
   tarea.iteracion = `Sprint ${faker.number.int({ min: 1, max: 4 })}`
-
   if (faker.datatype.boolean()) {
-    tarea.asignatario = crearUsuarioFalso()
+    tarea.asignatario = await usuarioRepository.getAnyUsuario()
   }
-
   tarea.fecha = faker.date.recent()
   tarea.porcentajeCumplimiento = faker.number.int({ min: 0, max: 100 })
 
   return tarea
 }
 
-export const generarTareas = (cantidad: number = 10): Tarea[] => {
-  return Array.from({ length: cantidad }, crearTareaFalsa)
-}
+export const generarTareas = async (cantidad: number = 10): Promise<Tarea[]> =>
+  Promise.all(Array.from({ length: cantidad }, crearTareaFalsa))
 
 class TareaRepository {
-  constructor(private tareas: Tarea[] = generarTareas(30)) {}
-
-  async getTareas(): Promise<TareaDto[]> {
-    return this.tareas.map(tarea => tarea.toDto())
+  constructor(private tareas: Tarea[] = []) {
+    generarTareas(450).then((allTareas) => {
+      this.tareas = allTareas
+    })
   }
 
-  async getTareaById(id: number): Promise<TareaDto | undefined> {
-    return this.tareas.find(tarea => tarea.id === id)?.toDto()
+  async getTareas(): Promise<Tarea[]> {
+    return this.tareas
+  }
+
+  async getTareaById(id: number): Promise<Tarea | undefined> {
+    return this.tareas.find(tarea => tarea.id === id)
+  }
+
+  async updateTarea(tarea: Tarea) {
+    const indexTarea = this.tareas.findIndex((tareaSearch: Tarea) => tareaSearch.id == tarea.id)
+    this.tareas[indexTarea] = tarea
+    return tarea
   }
 }
 

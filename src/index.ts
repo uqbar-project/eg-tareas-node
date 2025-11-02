@@ -4,6 +4,7 @@ import { getTareas, updateTarea } from './controller/tareaController.js'
 import type { TareaDto } from './domain/tarea.js'
 import { errorMiddleware } from './errors/errorMiddleware.js'
 import cors from 'cors'
+import { getUsuarios } from './controller/usuarioController.js'
 
 const app = express()
 const PORT = process.env.PORT || 9000
@@ -18,10 +19,10 @@ app.get('/tareas', asyncHandler(async (req, res) => {
   res.json(respuestaPaginada)
 }))
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`✅ Servidor de Tareas (TS - ESM) corriendo en http://localhost:${PORT}`)
-})
+app.get('/usuarios', asyncHandler(async (req, res) => {
+  const usuarios = await getUsuarios()
+  res.json(usuarios)
+}))
 
 app.put('/tareas/:id', asyncHandler(async (req, res) => {
   const { id } = req.params
@@ -29,5 +30,10 @@ app.put('/tareas/:id', asyncHandler(async (req, res) => {
   const tareaActualizada = await updateTarea(id as string, tareaDto)
   res.json(tareaActualizada)
 }))
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+  console.log(`✅ Servidor de Tareas (TS - ESM) corriendo en http://localhost:${PORT}`)
+})
 
 app.use(errorMiddleware)
