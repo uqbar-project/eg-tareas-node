@@ -12,7 +12,7 @@ const crearTareaFalsa = async (): Promise<Tarea> => {
   if (faker.datatype.boolean()) {
     tarea.asignatario = await usuarioRepository.getAnyUsuario()
   }
-  tarea.fecha = faker.date.recent()
+  tarea.fecha = faker.date.recent({ days: 30 })
   tarea.porcentajeCumplimiento = faker.number.int({ min: 0, max: 100 })
 
   return tarea
