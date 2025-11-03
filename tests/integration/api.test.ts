@@ -1,6 +1,7 @@
 import request from 'supertest'
 import app from '../../src/index'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { tareaRepository } from '../../src/repository/tareaRepository'
 
 describe('API integration tests', () => {
   it('GET /tareas should return page and data array', async () => {
@@ -9,6 +10,41 @@ describe('API integration tests', () => {
     expect(res.body).toHaveProperty('page')
     expect(Array.isArray(res.body.data)).toBe(true)
     expect(res.body.page).toBe(1)
+  })
+
+  it('GET /tareas should return second page and data array', async () => {
+    const res = await request(app).get('/tareas?page=2&limit=5')
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('page')
+    const tasks = res.body.data
+    expect(Array.isArray(res.body.data)).toBe(true)
+    expect(tasks.length).toBe(5)
+    expect(res.body.page).toBe(2)
+  })
+
+  describe('GET /tareas/:id error handling', () => {
+    it('should return a 404 http code for a non-existing task', async () => {
+      const res = await request(app).get('/tareas/999999')
+      expect(res.status).toBe(404)
+    })
+
+    describe('when database fails', () => {
+      beforeEach(() => {
+        vi.spyOn(tareaRepository, 'getTareaById').mockImplementation(() => {
+          throw new Error('Database connection failed')
+        })
+      })
+
+      afterEach(() => {
+        vi.restoreAllMocks()
+      })
+
+      it('should return a 500 http code', async () => {
+        const res = await request(app).get('/tareas/999999')
+        expect(res.status).toBe(500)
+        expect(res.body.message).toBe('Error interno del servidor')
+      })
+    })
   })
 
   it('GET /tareas/:id and PUT /tareas/:id should return and update a task', async () => {
