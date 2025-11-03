@@ -18,7 +18,7 @@ export class Tarea {
       descripcion: this.descripcion,
       iteracion: this.iteracion,
       asignadoA: this.asignatario?.nombre,
-      fecha: this.fecha.toLocaleDateString('es-AR'),
+      fecha: this.fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
       porcentajeCumplimiento: this.porcentajeCumplimiento,
     }
   }
