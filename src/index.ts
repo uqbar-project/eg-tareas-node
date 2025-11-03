@@ -37,9 +37,13 @@ app.put('/tareas/:id', asyncHandler(async (req, res) => {
   res.json(tareaActualizada)
 }))
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`✅ Servidor de Tareas (TS - ESM) corriendo en http://localhost:${PORT}`)
-})
+// Sólo iniciar el servidor cuando no estamos en entorno de test
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`✅ Servidor de Tareas (TS - ESM) corriendo en http://localhost:${PORT}`)
+  })
+}
 
 app.use(errorMiddleware)
+
+export default app
