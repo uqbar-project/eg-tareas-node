@@ -1,7 +1,7 @@
 
 ## Tareas de un equipo de desarrollo
 
-[![Node.js CI](https://github.com/uqbar-project/eg-tareas-node/actions/workflows/build.yml/badge.svg)](https://github.com/uqbar-project/eg-tareas-node/actions/workflows/build.yml)
+[![Node.js CI](https://github.com/uqbar-project/eg-tareas-node/actions/workflows/build.yml/badge.svg)](https://github.com/uqbar-project/eg-tareas-node/actions/workflows/build.yml) [![codecov](https://codecov.io/gh/uqbar-project/eg-tareas-node/graph/badge.svg?token=HaTQqsZlSE)](https://codecov.io/gh/uqbar-project/eg-tareas-node)
 
 En esta variante en Node agregamos servicios de paginación para lo cual, a la hora de pedir las tareas, agregamos como parámetro
 
@@ -18,3 +18,7 @@ También agregamos un middleware de manejo de errores para que podamos manejar l
 El autowire de Springboot se hace mediante una inyección de dependencias manual.
 
 Utilizamos el servicio de faker para generar una buena cantidad de tareas.
+
+TODO: Mejorar la explicación
+
+TODO 2: Testear los errores/testear el paginado
