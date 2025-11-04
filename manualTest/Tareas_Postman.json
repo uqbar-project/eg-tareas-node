@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "Tareas node",
+    "description": "",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Tareas - página 1",
+      "event": [],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "",
+        "url": {
+          "raw": "{{URL}}/tareas?page=1&limit=5",
+          "protocol": "",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "tareas?page=1&limit=5"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "5"
+            }
+          ],
+          "variable": []
+        }
+      }
+    },
+    {
+      "name": "Una tarea",
+      "event": [],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "",
+        "url": {
+          "raw": "{{URL}}/tareas/2",
+          "protocol": "",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "tareas",
+            "2"
+          ],
+          "query": [],
+          "variable": []
+        }
+      }
+    },
+    {
+      "name": "Usuarios",
+      "event": [],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "",
+        "url": {
+          "raw": "{{URL}}/usuarios",
+          "protocol": "",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "usuarios"
+          ],
+          "query": [],
+          "variable": []
+        }
+      }
+    },
+    {
+      "name": "Actualizar una tarea",
+      "event": [],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "",
+        "url": {
+          "raw": "{{URL}}/tareas/2",
+          "protocol": "",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "tareas",
+            "2"
+          ],
+          "query": [],
+          "variable": []
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 2,\n  \"descripcion\": \"Agnosco defendo vel uxor adhaero.\",\n  \"iteracion\": \"Sprint 3\",\n  \"asignadoA\": \"Armando Casares Trujillo\",\n  \"fecha\": \"14/10/2025\",\n  \"porcentajeCumplimiento\": 81\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "URL",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}

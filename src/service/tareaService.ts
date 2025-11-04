@@ -1,3 +1,4 @@
+import { parse } from 'date-fns'
 import type { Tarea, TareaDto } from '../domain/tarea.js'
 import { NotFoundError } from '../errors/errors.js'
 import { tareaRepository } from '../repository/tareaRepository.js'
@@ -41,7 +42,7 @@ class TareasService {
       if (!nuevoAsignatario) throw new NotFoundError(`Usuario ${dto.asignadoA} no encontrado`)
       tarea.asignatario = nuevoAsignatario
     }
-    tarea.fecha = new Date(dto.fecha)
+    tarea.fecha = parse(dto.fecha, 'dd/MM/yyyy', new Date())
     tarea.porcentajeCumplimiento = dto.porcentajeCumplimiento
     tareaRepository.updateTarea(tarea)
     return tarea.toDto()
