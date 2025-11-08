@@ -29,7 +29,7 @@ class TareaRepository {
   }
 
   async getTareas(): Promise<Tarea[]> {
-    return this.tareas
+    return this.tareas.sort((a, b) => a.descripcion < b.descripcion ? -1 : 1)
   }
 
   async getTareaById(id: number): Promise<Tarea | undefined> {
