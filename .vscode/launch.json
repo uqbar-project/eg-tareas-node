@@ -6,7 +6,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug with tsx",
+      "name": "Debug Server",
       "runtimeExecutable": "node",
       "runtimeArgs": [
         "--import",
