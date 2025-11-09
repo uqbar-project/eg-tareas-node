@@ -8,6 +8,28 @@
 - [Bruno](./manualTest/Tareas_Bruno.json)
 - [POSTMAN](./manualTest/Tareas_Postman.json)
 
+## Configuración inicial
+
+Antes de levantar el servidor, asegurate de tener instalado Node.js y las dependencias del proyecto.
+
+### Instalar Node.js con nvm (opcional)
+
+Si usás nvm para manejar versiones de Node.js:
+
+```bash
+nvm use
+```
+
+Esto seleccionará automáticamente la versión de Node.js especificada en el archivo `.nvmrc` del proyecto.
+
+### Instalar dependencias
+
+```bash
+npm ci
+```
+
+Este comando instala las dependencias usando las versiones exactas especificadas en el `package-lock.json`, garantizando un ambiente consistente.
+
 ## Cómo levantar el servidor
 
 ### Modo normal
