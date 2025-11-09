@@ -8,6 +8,26 @@
 - [Bruno](./manualTest/Tareas_Bruno.json)
 - [POSTMAN](./manualTest/Tareas_Postman.json)
 
+## Cómo levantar el servidor
+
+### Modo normal
+
+Para levantar el servidor en modo normal, ejecutá:
+
+```bash
+npm run start:dev
+```
+
+### Modo debug
+
+Para levantar el servidor en modo debug y poder establecer breakpoints:
+
+1. Abrí el panel de debug (hacé clic en el ícono de debug en la barra lateral o presioná `Ctrl+Shift+D` / `Cmd+Shift+D`)
+2. Verificá que esté seleccionada la configuración **"Debug Server"** en el menú desplegable
+3. Presioná el botón de play o `F5` (en macOS puede ser `Fn+F5`)
+
+El servidor se levantará con el debugger adjunto. Podés establecer breakpoints en el código haciendo clic a la izquierda del número de línea.
+
 ## Explicación general
 
 En esta variante en Node agregamos servicios de paginación para lo cual, a la hora de pedir las tareas, agregamos como parámetro
