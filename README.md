@@ -46,7 +46,7 @@ Para levantar el servidor en modo debug y poder establecer breakpoints:
 
 1. Abrí el panel de debug (hacé clic en el ícono de debug en la barra lateral o presioná `Ctrl+Shift+D` / `Cmd+Shift+D`)
 2. Verificá que esté seleccionada la configuración **"Debug Server"** en el menú desplegable
-3. Presioná el botón de play o `F5` (en macOS puede ser `Fn+F5`)
+3. Presioná el botón de play o `F5` (en Mac, usá `Fn+F5` si las teclas de función no están activas).
 
 El servidor se levantará con el debugger adjunto. Podés establecer breakpoints en el código haciendo clic a la izquierda del número de línea.
 
