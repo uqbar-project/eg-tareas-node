@@ -8,13 +8,8 @@
       "request": "launch",
       "name": "Debug Server",
       "runtimeExecutable": "node",
-      "runtimeArgs": [
-        "--import",
-        "tsx"
-      ],
-      "args": [
-        "${workspaceFolder}/src/index.ts"
-      ],
+      "runtimeArgs": ["--import", "tsx"],
+      "args": ["${workspaceFolder}/src/index.ts"],
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
