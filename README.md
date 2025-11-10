@@ -8,6 +8,48 @@
 - [Bruno](./manualTest/Tareas_Bruno.json)
 - [POSTMAN](./manualTest/Tareas_Postman.json)
 
+## Configuración inicial
+
+Antes de levantar el servidor, asegurate de tener instalado Node.js y las dependencias del proyecto.
+
+### Instalar Node.js con nvm (opcional)
+
+Si usás nvm para manejar versiones de Node.js:
+
+```bash
+nvm use
+```
+
+Esto seleccionará automáticamente la versión de Node.js especificada en el archivo `.nvmrc` del proyecto.
+
+### Instalar dependencias
+
+```bash
+npm ci
+```
+
+Este comando instala las dependencias usando las versiones exactas especificadas en el `package-lock.json`, garantizando un ambiente consistente.
+
+## Cómo levantar el servidor
+
+### Modo normal
+
+Para levantar el servidor en modo normal, ejecutá:
+
+```bash
+npm run start:dev
+```
+
+### Modo debug
+
+Para levantar el servidor en modo debug y poder establecer breakpoints:
+
+1. Abrí el panel de debug (hacé clic en el ícono de debug en la barra lateral o presioná `Ctrl+Shift+D` / `Cmd+Shift+D`)
+2. Verificá que esté seleccionada la configuración **"Debug Server"** en el menú desplegable
+3. Presioná el botón de play o `F5` (en Mac, usá `Fn+F5` si las teclas de función no están activas).
+
+El servidor se levantará con el debugger adjunto. Podés establecer breakpoints en el código haciendo clic a la izquierda del número de línea.
+
 ## Explicación general
 
 En esta variante en Node agregamos servicios de paginación para lo cual, a la hora de pedir las tareas, agregamos como parámetro
