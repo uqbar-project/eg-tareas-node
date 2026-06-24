@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { parse } from 'date-fns'
-import { NotFoundError } from '../common/filters/domain-error.filter.js'
 import type { Tarea, TareaDto } from '../domain/tarea.js'
 import { UsuarioRepository } from '../usuario/usuario.repository.js'
 import { TareaRepository } from './tarea.repository.js'
@@ -20,7 +19,7 @@ export class TareasService {
 
   async getTareaById(id: number) {
     const tarea = await this.tareaRepository.getTareaById(id)
-    if (!tarea) throw new NotFoundError(`Tarea ${id} no encontrada`)
+    if (!tarea) throw new NotFoundException(`Tarea ${id} no encontrada`)
     return tarea.toDto()
   }
 
@@ -40,7 +39,7 @@ export class TareasService {
   async updateTarea(id: number, dto: TareaDto): Promise<TareaDto> {
     const tarea = await this.tareaRepository.getTareaById(id)
     if (!tarea) {
-      throw new NotFoundError(`Tarea ${id} no encontrada`)
+      throw new NotFoundException(`Tarea ${id} no encontrada`)
     }
     tarea.descripcion = dto.descripcion
     tarea.iteracion = dto.iteracion
@@ -49,7 +48,7 @@ export class TareasService {
         dto.asignadoA
       )
       if (!nuevoAsignatario)
-        throw new NotFoundError(`Usuario ${dto.asignadoA} no encontrado`)
+        throw new NotFoundException(`Usuario ${dto.asignadoA} no encontrado`)
       tarea.asignatario = nuevoAsignatario
     }
     tarea.fecha = parse(dto.fecha, 'dd/MM/yyyy', new Date())

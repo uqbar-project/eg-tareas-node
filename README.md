@@ -25,30 +25,28 @@ Esto seleccionará automáticamente la versión de Node.js especificada en el ar
 ### Instalar dependencias
 
 ```bash
-npm ci
+pnpm install
 ```
-
-Este comando instala las dependencias usando las versiones exactas especificadas en el `package-lock.json`, garantizando un ambiente consistente.
 
 ## Cómo levantar el servidor
 
-### Modo normal
-
-Para levantar el servidor en modo normal, ejecutá:
+### Modo desarrollo (con watch)
 
 ```bash
-npm run start:dev
+pnpm start:dev
 ```
 
-### Modo debug
+### Tests
 
-Para levantar el servidor en modo debug y poder establecer breakpoints:
+```bash
+pnpm test
+```
 
-1. Abrí el panel de debug (hacé clic en el ícono de debug en la barra lateral o presioná `Ctrl+Shift+D` / `Cmd+Shift+D`)
-2. Verificá que esté seleccionada la configuración **"Debug Server"** en el menú desplegable
-3. Presioná el botón de play o `F5` (en Mac, usá `Fn+F5` si las teclas de función no están activas).
+### Linter
 
-El servidor se levantará con el debugger adjunto. Podés establecer breakpoints en el código haciendo clic a la izquierda del número de línea.
+```bash
+pnpm lint
+```
 
 ## Explicación general
 
@@ -92,84 +90,156 @@ Ejemplo:
 
 ## Implementación
 
+El proyecto está implementado con **NestJS**, un framework progresivo de Node.js que usa decorators para estructurar la aplicación. La arquitectura sigue el patrón **Controller → Service → Repository** con inyección de dependencias automática.
+
+### Estructura del proyecto
+
+```
+src/
+├── main.ts                        # Entry point con NestFactory
+├── app.module.ts                  # Módulo raíz
+├── tarea/
+│   ├── tarea.module.ts
+│   ├── tarea.controller.ts        # @Controller('tareas')
+│   ├── tarea.service.ts           # @Injectable()
+│   └── tarea.repository.ts
+├── usuario/
+│   ├── usuario.module.ts
+│   ├── usuario.controller.ts      # @Controller('usuarios')
+│   ├── usuario.service.ts         # @Injectable()
+│   └── usuario.repository.ts
+└── domain/
+    └── tarea.ts                   # Clases Tarea y Usuario
+```
+
 ### Arquitectura general
 
 ![alt text](./images/architecture.png)
 
-El index principal tiene un **middleware** de errores (explicado más abajo), el manejo de CORS para que el servidor de front pueda comunicarse con el back y la exportación de los resultados a formato json.
+El **main.ts** arranca la aplicación con `NestFactory.create(AppModule)`, habilita CORS y expone el servidor.
 
-Luego podemos ver una estructura similar a la que podés encontrar en el ejemplo [implementado en Springboot](https://github.com/uqbar-project/eg-tareas-springboot-kotlin):
+Cada módulo agrupa controller, service y repository con la misma separación de responsabilidades que podés encontrar en el ejemplo [implementado en Springboot](https://github.com/uqbar-project/eg-tareas-springboot-kotlin):
 
-- un **controller** que tiene como finalidad adaptar el pedido http a un esquema más cómodo para trabajar con objetos, y viceversa (allí podrás ver por ejemplo cómo captura los query params del paginado)
-- un **service** que orquesta las llamadas al repositorio y delega cuando es necesario la conversión a métodos de negocio (por ejemplo para transformar un objeto de dominio TS a JSON puro / DTO)
-- un **repository** que funciona como un servicio de acceso a la búsqueda y actualización de los datos en un medio externo o bien en memoria.
-- y nuestro **objeto de dominio**, representado tanto para las tareas como para los usuarios.
+- **controller**: adapta el pedido HTTP usando decorators como `@Get`, `@Put`, `@Param`, `@Body` y `@Query`
+- **service**: orquesta las llamadas al repositorio y delega la conversión a objetos de dominio
+- **repository**: servicio de acceso a los datos (en memoria con datos generados por `faker`)
+- **domain**: objetos de negocio `Tarea` y `Usuario`
 
 ### Inyección de dependencias
 
-Mientras que en Springboot existe la anotación `@Autowired` que crea los singletons para el controller, el service y el repository, en esta variante debemos hacerlo manualmente, generando una referencia que luego es exportada. Veamos por ejemplo el service:
+NestJS usa un contenedor de DI similar al `@Autowired` de Springboot. Los servicios y repositorios se decoran con `@Injectable()` y se inyectan por constructor:
 
 ```ts
-class TareasService {
+// tarea.service.ts
+@Injectable()
+export class TareasService {
+  constructor(
+    private readonly tareaRepository: TareaRepository,
+    private readonly usuarioRepository: UsuarioRepository,
+  ) {}
+
   async getTareaById(id: number) {
-    ...
-  }
-
-  async getTareas(page: number, limit: number): Promise<PageTareas> {
-    ...
-  }
-
-  async updateTarea(id: number, dto: TareaDto): Promise<TareaDto> {
-    ...
+    const tarea = await this.tareaRepository.getTareaById(id)
+    if (!tarea) throw new NotFoundException(`Tarea ${id} no encontrada`)
+    return tarea.toDto()
   }
 }
-
-export const tareasService = new TareasService()
 ```
+
+```ts
+// tarea.controller.ts
+@Controller('tareas')
+export class TareaController {
+  constructor(private readonly tareasService: TareasService) {}
+
+  @Get()
+  async getTareas(@Query('page') page?: string, @Query('limit') limit?: string) {
+    const pageNum = page ? Number(page) : 1
+    const limitNum = limit ? Number(limit) : 0
+    return this.tareasService.getTareas(pageNum, limitNum)
+  }
+}
+```
+
+### Módulos y dependencias entre módulos
+
+**`AppModule`** es el módulo raíz. Su única responsabilidad es importar los demás módulos:
+
+```ts
+@Module({
+  imports: [TareaModule, UsuarioModule],
+})
+export class AppModule {}
+```
+
+Cada módulo define sus propios componentes y decide qué compartir con otros módulos mediante `exports`.
+
+**`UsuarioModule`** exporta `UsuarioRepository` para que esté disponible en otros módulos:
+
+```ts
+@Module({
+  controllers: [UsuarioController],
+  providers: [UsuariosService, UsuarioRepository],
+  exports: [UsuarioRepository],
+})
+export class UsuarioModule {}
+```
+
+**`TareaModule`** importa `UsuarioModule` para poder inyectar `UsuarioRepository` en sus servicios:
+
+```ts
+@Module({
+  imports: [UsuarioModule],
+  controllers: [TareaController],
+  providers: [TareasService, TareaRepository],
+})
+export class TareaModule {}
+```
+
+La regla es simple: si el módulo A necesita un provider del módulo B, entonces A importa a B, y B tiene que exportar ese provider.
+
+```
+AppModule
+ ├── TareaModule
+ │    ├── TareaController  →  TareasService
+ │    ├── TareasService    →  TareaRepository + UsuarioRepository (exportado de UsuarioModule)
+ │    └── TareaRepository
+ │
+ └── UsuarioModule (exports: UsuarioRepository)
+      ├── UsuarioController  →  UsuariosService
+      ├── UsuariosService    →  UsuarioRepository
+      └── UsuarioRepository
+```
+
+> A diferencia de Springboot — donde todo es global por defecto gracias al classpath scanning — NestJS exige declarar `imports` y `exports` explícitamente. Es más verboso pero evita dependencias ocultas. Es una decisión de diseño distinta: encapsulación por módulo.
 
 ### Manejo de errores
 
-El esquema que utiliza Node es muy similar a los filters (decorators) de Springboot, solo que en Node el nombre que recibe es **middleware**.
+NestJS provee excepciones built-in que llevan asociado su código HTTP. Al lanzarlas, NestJS las intercepta y devuelve la respuesta adecuada sin necesidad de filters ni middlewares:
 
-![Middleware](./images/middleware.png)
-
-Veamos la función general...
+| Excepción | Status code |
+|---|---|
+| `NotFoundException` | 404 |
+| `BadRequestException` | 400 |
+| `InternalServerErrorException` | 500 |
 
 ```ts
-export const errorMiddleware = (
-  err: Error,
-  req: Request,
-  res: Response,
-  _next: NextFunction,
-) => {
-  console.error(`[Error Middleware] ${err.name}: ${err.message}`)
-  if (err instanceof NotFoundError) {
-    return res.status(404).json({ message: err.message })
+// tarea.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common'
+
+@Injectable()
+export class TareasService {
+  async getTareaById(id: number) {
+    const tarea = await this.tareaRepository.getTareaById(id)
+    if (!tarea) throw new NotFoundException(`Tarea ${id} no encontrada`)
+    return tarea.toDto()
   }
-  if (err instanceof DomainError) {
-    return res.status(400).json({ message: err.message })
-  }
-  return res.status(500).json({ message: 'Error interno del servidor' })
 }
-```
-
-y cómo se debe inyectar, una vez que se definieron los handlers (porque así se encadena primero el handler y al tirar error lo recibe el middleware):
-
-```ts
-app.get('/tareas', asyncHandler(async (req, res) => { ...
-
-app.get('/usuarios', asyncHandler(async (req, res) => { ...
-
-app.put('/tareas/:id', asyncHandler(async (req, res) => { ...
-
-...
-
-app.use(errorMiddleware)
 ```
 
 ### Generación de datos de prueba
 
-La biblioteca `faker` nos sirve para crear primero 50 usuarios:
+La biblioteca `faker` nos sirve para crear primero 50 usuarios y luego 450 tareas. A diferencia de la versión anterior con Express, ahora todo se genera de forma sincrónica al iniciar el módulo:
 
 ```ts
 const crearUsuarioFalso = (): Usuario => {
@@ -183,43 +253,30 @@ const crearUsuarioFalso = (): Usuario => {
 const generarUsuarios = (cantidad: number = 50) =>
   Array.from({ length: cantidad }, crearUsuarioFalso)
 
-class UsuarioRepository {
-  constructor(private usuarios: Usuario[] = generarUsuarios()) {}
+@Injectable()
+export class UsuarioRepository {
+  private usuarios: Usuario[] = generarUsuarios()
 ```
-
-Este proceso se hace de manera sincrónica, porque no hay riesgo de que tarde demasiado, así que todo se ejecuta en el event loop.
-
-Pero a la hora de crear una tarea, necesitamos buscar un usuario que exista, y para ello tendríamos dos opciones
-
-- traer la lista de usuarios y elegir uno al azar como asignatario
-- hacer la búsqueda al azar delegando esa búsqueda en el repositorio
-
-En ambos casos si bien estamos usando una colección en memoria, queremos replicar el comportamiento que tendríamos si trabajásemos con una base de datos real. Entonces pasamos a trabajar en modo asincrónico. Pero vamos a crear las 450 tareas en paralelo, porque no necesitamos esperar a que se cree la primera tarea para crear la segunda:
 
 ```ts
 let ultimoId = 1
 
-const crearTareaFalsa = async (): Promise<Tarea> => {
+const crearTareaFalsa = (): Tarea => {
   const tarea = new Tarea()
   tarea.id = ultimoId++
   tarea.descripcion = faker.lorem.sentence(5)
   tarea.iteracion = `Sprint ${faker.number.int({ min: 1, max: 4 })}`
-  if (faker.datatype.boolean()) {
-    tarea.asignatario = await usuarioRepository.getAnyUsuario()
-  }
   tarea.fecha = faker.date.recent({ days: 30 })
   tarea.porcentajeCumplimiento = faker.number.int({ min: 0, max: 100 })
-
   return tarea
 }
 
-export const generarTareas = async (cantidad: number = 10): Promise<Tarea[]> =>
-  Promise.all(Array.from({ length: cantidad }, crearTareaFalsa))
+const generarTareas = (cantidad: number = 10): Tarea[] =>
+  Array.from({ length: cantidad }, crearTareaFalsa)
 
-class TareaRepository {
-  constructor(private tareas: Tarea[] = []) {
-    generarTareas(450).then((allTareas) => {
-      this.tareas = allTareas
-    })
-  }
+@Injectable()
+export class TareaRepository {
+  private tareas: Tarea[] = generarTareas(450)
 ```
+
+Al ser datos en memoria, el servidor arranca con datos precargados listos para consultar y modificar.

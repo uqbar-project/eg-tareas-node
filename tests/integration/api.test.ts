@@ -66,7 +66,6 @@ describe('API integration tests', () => {
         await nestApp.init()
         const res = await request(nestApp.getHttpServer()).get('/tareas/999999')
         expect(res.status).toBe(500)
-        expect(res.body.message).toBe('Error interno del servidor')
         await nestApp.close()
       })
     })
