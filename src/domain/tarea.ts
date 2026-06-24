@@ -5,7 +5,7 @@ export class Usuario {
 }
 
 export class Tarea {
-  id!: number
+  id: number = 0
   descripcion: string = ''
   iteracion: string = ''
   asignatario: Usuario | null = null
@@ -14,11 +14,15 @@ export class Tarea {
 
   toDto(): TareaDto {
     return {
-      id: this.id!,
+      id: this.id,
       descripcion: this.descripcion,
       iteracion: this.iteracion,
       asignadoA: this.asignatario?.nombre,
-      fecha: this.fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      fecha: this.fecha.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }),
       porcentajeCumplimiento: this.porcentajeCumplimiento,
     }
   }
