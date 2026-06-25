@@ -1,5 +1,6 @@
+import { faker } from '@faker-js/faker/locale/es'
+import { Injectable } from '@nestjs/common'
 import { Usuario } from '../domain/tarea.js'
-import { faker } from '@faker-js/faker/locale/es' // Usamos faker en español
 
 const crearUsuarioFalso = (): Usuario => {
   const usuario = new Usuario()
@@ -12,12 +13,16 @@ const crearUsuarioFalso = (): Usuario => {
 const generarUsuarios = (cantidad: number = 50) =>
   Array.from({ length: cantidad }, crearUsuarioFalso)
 
-class UsuarioRepository {
-  constructor(private usuarios: Usuario[] = generarUsuarios()) {}
+@Injectable()
+export class UsuarioRepository {
+  private usuarios: Usuario[] = generarUsuarios()
 
   async getAnyUsuario() {
+    if (this.usuarios.length === 0) throw new Error('Empty user list')
     const randomNumber = Math.trunc(Math.random() * this.usuarios.length)
-    return this.usuarios[randomNumber]!
+    const usuario = this.usuarios[randomNumber]
+    if (!usuario) throw new Error('Empty user list')
+    return usuario
   }
 
   async getUsuarios() {
@@ -25,8 +30,9 @@ class UsuarioRepository {
   }
 
   async getUsuarioByNombre(nombre: string) {
-    return this.usuarios.find((usuario: Usuario) => usuario.nombre.toLowerCase() == nombre.toLowerCase())
+    return this.usuarios.find(
+      (usuario: Usuario) =>
+        usuario.nombre.toLowerCase() === nombre.toLowerCase()
+    )
   }
 }
-
-export const usuarioRepository = new UsuarioRepository()

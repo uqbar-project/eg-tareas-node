@@ -1,3 +1,5 @@
+import { BadRequestException } from '@nestjs/common'
+
 export class Usuario {
   id: string = ''
   nombre: string = ''
@@ -5,7 +7,7 @@ export class Usuario {
 }
 
 export class Tarea {
-  id!: number
+  id: number = 0
   descripcion: string = ''
   iteracion: string = ''
   asignatario: Usuario | null = null
@@ -14,12 +16,34 @@ export class Tarea {
 
   toDto(): TareaDto {
     return {
-      id: this.id!,
+      id: this.id,
       descripcion: this.descripcion,
       iteracion: this.iteracion,
       asignadoA: this.asignatario?.nombre,
-      fecha: this.fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      fecha: this.fecha.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }),
       porcentajeCumplimiento: this.porcentajeCumplimiento,
+    }
+  }
+
+  validar(): void {
+    if (!this.descripcion || this.descripcion.trim().length === 0) {
+      throw new BadRequestException('La descripción no puede estar vacía')
+    }
+    if (
+      !Number.isFinite(this.porcentajeCumplimiento) ||
+      this.porcentajeCumplimiento < 0 ||
+      this.porcentajeCumplimiento > 100
+    ) {
+      throw new BadRequestException(
+        'El porcentaje de cumplimiento debe estar entre 0 y 100'
+      )
+    }
+    if (Number.isNaN(this.fecha.getTime())) {
+      throw new BadRequestException('La fecha debe ser válida')
     }
   }
 }
