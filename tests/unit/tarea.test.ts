@@ -54,6 +54,20 @@ describe('Tarea', () => {
       expect(() => tarea.validar()).not.toThrow()
     })
 
+    it('should throw when porcentajeCumplimiento is NaN', () => {
+      tarea.porcentajeCumplimiento = NaN
+      expect(() => tarea.validar()).toThrow(
+        'El porcentaje de cumplimiento debe estar entre 0 y 100'
+      )
+    })
+
+    it('should throw when porcentajeCumplimiento is Infinity', () => {
+      tarea.porcentajeCumplimiento = Infinity
+      expect(() => tarea.validar()).toThrow(
+        'El porcentaje de cumplimiento debe estar entre 0 y 100'
+      )
+    })
+
     it('should throw when fecha is invalid', () => {
       tarea.fecha = new Date('invalid')
       expect(() => tarea.validar()).toThrow('La fecha debe ser válida')

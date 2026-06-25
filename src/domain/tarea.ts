@@ -1,3 +1,5 @@
+import { BadRequestException } from '@nestjs/common'
+
 export class Usuario {
   id: string = ''
   nombre: string = ''
@@ -29,13 +31,19 @@ export class Tarea {
 
   validar(): void {
     if (!this.descripcion || this.descripcion.trim().length === 0) {
-      throw new Error('La descripción no puede estar vacía')
+      throw new BadRequestException('La descripción no puede estar vacía')
     }
-    if (this.porcentajeCumplimiento < 0 || this.porcentajeCumplimiento > 100) {
-      throw new Error('El porcentaje de cumplimiento debe estar entre 0 y 100')
+    if (
+      !Number.isFinite(this.porcentajeCumplimiento) ||
+      this.porcentajeCumplimiento < 0 ||
+      this.porcentajeCumplimiento > 100
+    ) {
+      throw new BadRequestException(
+        'El porcentaje de cumplimiento debe estar entre 0 y 100'
+      )
     }
     if (Number.isNaN(this.fecha.getTime())) {
-      throw new Error('La fecha debe ser válida')
+      throw new BadRequestException('La fecha debe ser válida')
     }
   }
 }
