@@ -26,6 +26,18 @@ export class Tarea {
       porcentajeCumplimiento: this.porcentajeCumplimiento,
     }
   }
+
+  validar(): void {
+    if (!this.descripcion || this.descripcion.trim().length === 0) {
+      throw new Error('La descripción no puede estar vacía')
+    }
+    if (this.porcentajeCumplimiento < 0 || this.porcentajeCumplimiento > 100) {
+      throw new Error('El porcentaje de cumplimiento debe estar entre 0 y 100')
+    }
+    if (Number.isNaN(this.fecha.getTime())) {
+      throw new Error('La fecha debe ser válida')
+    }
+  }
 }
 
 export interface TareaDto {

@@ -29,8 +29,7 @@ export class TareasService {
     if (limit === 0) return { page, hasMore: false, data: allTareas.map(toDTO) }
     const queryLimit = limit + 1
     const startIndex = (page - 1) * limit
-    const allData = await this.tareaRepository.getTareas()
-    const dataConExtra = allData.slice(startIndex, startIndex + queryLimit)
+    const dataConExtra = allTareas.slice(startIndex, startIndex + queryLimit)
     const hasMore = dataConExtra.length > limit
     const dataPaginada = allTareas.slice((page - 1) * limit, page * limit)
     return { page, hasMore, data: dataPaginada.map(toDTO) }
@@ -53,6 +52,7 @@ export class TareasService {
     }
     tarea.fecha = parse(dto.fecha, 'dd/MM/yyyy', new Date())
     tarea.porcentajeCumplimiento = dto.porcentajeCumplimiento
+    tarea.validar()
     this.tareaRepository.updateTarea(tarea)
     return tarea.toDto()
   }

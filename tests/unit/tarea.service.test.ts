@@ -39,8 +39,10 @@ describe('TareasService', () => {
 
     it('should paginate with hasMore', async () => {
       const result = await service.getTareas(1, 10)
+      const total = (await tareaRepo.getTareas()).length
       expect(result.page).toBe(1)
       expect(result.data.length).toBeLessThanOrEqual(10)
+      expect(result.hasMore).toBe(total > 10)
     })
   })
 

@@ -23,7 +23,9 @@ export class TareaRepository {
   private tareas: Tarea[] = generarTareas(450)
 
   async getTareas(): Promise<Tarea[]> {
-    return this.tareas.sort((a, b) => (a.descripcion < b.descripcion ? -1 : 1))
+    return this.tareas.sort((a, b) =>
+      a.descripcion.localeCompare(b.descripcion)
+    )
   }
 
   async getTareaById(id: number): Promise<Tarea | undefined> {
