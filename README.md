@@ -1,5 +1,5 @@
 
-## Tareas de un equipo de desarrollo
+## Tareas de un equipo de desarrollo - Paginado con Nest
 
 [![Node.js CI](https://github.com/uqbar-project/eg-tareas-node/actions/workflows/build.yml/badge.svg)](https://github.com/uqbar-project/eg-tareas-node/actions/workflows/build.yml) [![codecov](https://codecov.io/gh/uqbar-project/eg-tareas-node/graph/badge.svg?token=HaTQqsZlSE)](https://codecov.io/gh/uqbar-project/eg-tareas-node)
 
@@ -267,40 +267,54 @@ Lo mismo ocurre con el repositorio de tareas. Al ser datos en memoria, el servid
 Usamos **Vitest** como test runner junto con **`@nestjs/testing`** y **Supertest**. La idea es levantar el módulo completo sin iniciar un servidor real: `Test.createTestingModule()` instancia el contenedor de NestJS con todos sus providers, y `supertest` dispara pedidos HTTP contra ese módulo como si fuera un servidor real.
 
 ```ts
-import { Test } from '@nestjs/testing'
-import { INestApplication } from '@nestjs/common'
+import { type INestApplication } from '@nestjs/common'
+import { Test, type TestingModule } from '@nestjs/testing'
 import request from 'supertest'
-import { TareaModule } from './tarea.module'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { AppModule } from '../../src/app.module.js'
 
-describe('TareaController (integración)', () => {
-  let app: INestApplication
+describe('API integration tests', () => {
+  let app: TestingModule
+  let nestApp: INestApplication
 
-  beforeAll(async () => {
-    const module = await Test.createTestingModule({
-      imports: [TareaModule],
+  beforeEach(async () => {
+    app = await Test.createTestingModule({
+      imports: [AppModule],
     }).compile()
-
-    app = module.createNestApplication()
-    await app.init()
+    nestApp = app.createNestApplication()
+    await nestApp.init()
   })
 
-  afterAll(() => app.close())
-
-  it('GET /tareas/:id devuelve la tarea si existe', async () => {
-    const response = await request(app.getHttpServer()).get('/tareas/1')
-    expect(response.status).toBe(200)
-    expect(response.body).toMatchObject({
-      id: 1,
-      descripcion: expect.any(String),
-      porcentajeCumplimiento: expect.any(Number),
-    })
+  afterEach(async () => {
+    await nestApp.close()
   })
 
-  it('GET /tareas/:id devuelve 404 si no existe', async () => {
-    const response = await request(app.getHttpServer()).get('/tareas/999999')
-    expect(response.status).toBe(404)
+  it('GET /tareas should return page and data array', async () => {
+    const res = await request(nestApp.getHttpServer()).get('/tareas')
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('page')
+    expect(Array.isArray(res.body.data)).toBe(true)
+    expect(res.body.page).toBe(1)
+  })
+
+  it('GET /tareas/:id and PUT /tareas/:id should return and update a task', async () => {
+    const listRes = await request(nestApp.getHttpServer()).get('/tareas')
+    const id = listRes.body.data[0].id
+
+    const getRes = await request(nestApp.getHttpServer()).get(`/tareas/${id}`)
+    expect(getRes.status).toBe(200)
+
+    const updatedDto = {
+      ...getRes.body,
+      descripcion: 'Descripcion actualizada desde test',
+    }
+    const putRes = await request(nestApp.getHttpServer())
+      .put(`/tareas/${id}`)
+      .send(updatedDto)
+    expect(putRes.status).toBe(200)
+    expect(putRes.body.descripcion).toBe('Descripcion actualizada desde test')
   })
 })
 ```
 
-A diferencia de los tests unitarios, acá no hay mocks: el test atraviesa el controller, el service y el repository real, lo que nos asegura que las capas se integran correctamente. El repositorio en memoria facilita el setup porque no necesita base de datos ni fixtures externos.
+Cada test levanta y cierra la aplicación (`beforeEach` / `afterEach`) para garantizar aislamiento. Como el repositorio vive en memoria, no se necesita base de datos ni fixtures externos. El test de actualización primero consulta la lista para obtener un `id` real, luego hace GET y finalmente PUT, verificando que la descripción se persistió.
