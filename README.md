@@ -114,7 +114,20 @@ src/
 
 ### Arquitectura general
 
-![alt text](./images/architecture.png)
+```mermaid
+graph TD
+    tarea.module.ts["tarea.module.ts<br/><i>registra y conecta capas</i>"]
+    tarea.controller.ts["tarea.controller.ts<br/><i>adapta pedidos HTTP</i>"]
+    tarea.service.ts["tarea.service.ts<br/><i>orquesta lógica de negocio</i>"]
+    tarea.repository.ts["tarea.repository.ts<br/><i>accede a los datos</i>"]
+    tarea.ts["tarea.ts<br/><i>modela el dominio</i>"]
+
+    tarea.module.ts --> tarea.controller.ts
+    tarea.controller.ts --> tarea.service.ts
+    tarea.service.ts --> tarea.repository.ts
+    tarea.repository.ts --> tarea.ts
+    tarea.service.ts --> tarea.ts
+```
 
 El **main.ts** arranca la aplicación con `NestFactory.create(AppModule)`, habilita CORS y expone el servidor.
 
@@ -127,24 +140,7 @@ Cada módulo agrupa controller, service y repository con la misma separación de
 
 ### Inyección de dependencias
 
-NestJS usa un contenedor de DI similar al `@Autowired` de Springboot. Los servicios y repositorios se decoran con `@Injectable()` y se inyectan por constructor:
-
-```ts
-// tarea.service.ts
-@Injectable()
-export class TareasService {
-  constructor(
-    private readonly tareaRepository: TareaRepository,
-    private readonly usuarioRepository: UsuarioRepository,
-  ) {}
-
-  async getTareaById(id: number) {
-    const tarea = await this.tareaRepository.getTareaById(id)
-    if (!tarea) throw new NotFoundException(`Tarea ${id} no encontrada`)
-    return tarea.toDto()
-  }
-}
-```
+NestJS usa un contenedor de Dependency Injection similar al `@Autowired` de Springboot. Los servicios y repositorios se decoran con `@Injectable()` y se inyectan por constructor:
 
 ```ts
 // tarea.controller.ts
@@ -160,6 +156,13 @@ export class TareaController {
   }
 }
 ```
+
+En este ejemplo vemos que
+
+- el decorator `@Get()` le avisa a Nest que el método reacciona ante un método http GET
+- page y limit son _query params_, que se pasan mediante la URL: `tareas?page=1&limit=5`. Para eso utilizamos el decorator `@Query`. Esos parámetros son opcionales, les proveemos valores default
+- y finalmente... delegamos al service: el lector podrá ver que se inyecta **por constructor** en el controller
+- y también pueden ver cómo se arma la paginación en el archivo [tareas.service.ts](./src/tarea/tarea.service.ts), un método _async_ para imitar el comportamiento que tendría una aplicación real que en lugar de tener un repositorio en memoria trabaje con una base de datos.
 
 ### Módulos y dependencias entre módulos
 
@@ -239,8 +242,7 @@ export class TareasService {
 
 ### Generación de datos de prueba
 
-La biblioteca `faker` nos sirve para crear primero 50 usuarios y luego 450 tareas. A diferencia de la versión anterior con Express, ahora todo se genera de forma sincrónica al iniciar el módulo:
-
+La biblioteca `faker` nos sirve para crear primero 50 usuarios y luego 450 tareas:
 ```ts
 const crearUsuarioFalso = (): Usuario => {
   const usuario = new Usuario()
@@ -258,25 +260,47 @@ export class UsuarioRepository {
   private usuarios: Usuario[] = generarUsuarios()
 ```
 
+Lo mismo ocurre con el repositorio de tareas. Al ser datos en memoria, el servidor arranca con datos precargados listos para consultar y modificar.
+
+### Testeo de integración
+
+Usamos **Vitest** como test runner junto con **`@nestjs/testing`** y **Supertest**. La idea es levantar el módulo completo sin iniciar un servidor real: `Test.createTestingModule()` instancia el contenedor de NestJS con todos sus providers, y `supertest` dispara pedidos HTTP contra ese módulo como si fuera un servidor real.
+
 ```ts
-let ultimoId = 1
+import { Test } from '@nestjs/testing'
+import { INestApplication } from '@nestjs/common'
+import request from 'supertest'
+import { TareaModule } from './tarea.module'
 
-const crearTareaFalsa = (): Tarea => {
-  const tarea = new Tarea()
-  tarea.id = ultimoId++
-  tarea.descripcion = faker.lorem.sentence(5)
-  tarea.iteracion = `Sprint ${faker.number.int({ min: 1, max: 4 })}`
-  tarea.fecha = faker.date.recent({ days: 30 })
-  tarea.porcentajeCumplimiento = faker.number.int({ min: 0, max: 100 })
-  return tarea
-}
+describe('TareaController (integración)', () => {
+  let app: INestApplication
 
-const generarTareas = (cantidad: number = 10): Tarea[] =>
-  Array.from({ length: cantidad }, crearTareaFalsa)
+  beforeAll(async () => {
+    const module = await Test.createTestingModule({
+      imports: [TareaModule],
+    }).compile()
 
-@Injectable()
-export class TareaRepository {
-  private tareas: Tarea[] = generarTareas(450)
+    app = module.createNestApplication()
+    await app.init()
+  })
+
+  afterAll(() => app.close())
+
+  it('GET /tareas/:id devuelve la tarea si existe', async () => {
+    const response = await request(app.getHttpServer()).get('/tareas/1')
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchObject({
+      id: 1,
+      descripcion: expect.any(String),
+      porcentajeCumplimiento: expect.any(Number),
+    })
+  })
+
+  it('GET /tareas/:id devuelve 404 si no existe', async () => {
+    const response = await request(app.getHttpServer()).get('/tareas/999999')
+    expect(response.status).toBe(404)
+  })
+})
 ```
 
-Al ser datos en memoria, el servidor arranca con datos precargados listos para consultar y modificar.
+A diferencia de los tests unitarios, acá no hay mocks: el test atraviesa el controller, el service y el repository real, lo que nos asegura que las capas se integran correctamente. El repositorio en memoria facilita el setup porque no necesita base de datos ni fixtures externos.
