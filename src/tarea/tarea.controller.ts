@@ -2,8 +2,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  Post,
   Put,
   Query,
 } from '@nestjs/common'
@@ -54,5 +56,16 @@ export class TareaController {
   async updateTarea(@Param('id') id: string, @Body() dto: TareaDto) {
     const idNum = this.validatePositiveInteger(id, 'id')
     return this.tareasService.updateTarea(idNum, dto)
+  }
+
+  @Post()
+  async createTarea(@Body() dto: TareaDto) {
+    return this.tareasService.createTarea(dto)
+  }
+
+  @Delete(':id')
+  async deleteTarea(@Param('id') id: string) {
+    const idNum = this.validatePositiveInteger(id, 'id')
+    await this.tareasService.deleteTarea(idNum)
   }
 }

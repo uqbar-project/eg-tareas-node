@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { parse } from 'date-fns'
-import type { Tarea, TareaDto } from '../domain/tarea.js'
+import type { TareaDto } from '../domain/tarea.js'
+import { Tarea } from '../domain/tarea.js'
 import { UsuarioRepository } from '../usuario/usuario.repository.js'
 import { TareaRepository } from './tarea.repository.js'
 
@@ -55,5 +56,28 @@ export class TareasService {
     tarea.validar()
     this.tareaRepository.updateTarea(tarea)
     return tarea.toDto()
+  }
+
+  async createTarea(dto: TareaDto): Promise<TareaDto> {
+    const nuevaTarea = new Tarea()
+    nuevaTarea.descripcion = dto.descripcion
+    nuevaTarea.iteracion = dto.iteracion
+    if (dto.asignadoA) {
+      const asignatario = await this.usuarioRepository.getUsuarioByNombre(
+        dto.asignadoA
+      )
+      if (!asignatario)
+        throw new NotFoundException(`Usuario ${dto.asignadoA} no encontrado`)
+      nuevaTarea.asignatario = asignatario
+    }
+    nuevaTarea.fecha = parse(dto.fecha, 'dd/MM/yyyy', new Date())
+    nuevaTarea.porcentajeCumplimiento = dto.porcentajeCumplimiento
+    nuevaTarea.validar()
+    const tareaCreada = await this.tareaRepository.createTarea(nuevaTarea)
+    return tareaCreada.toDto()
+  }
+
+  async deleteTarea(id: number): Promise<void> {
+    await this.tareaRepository.deleteTarea(id)
   }
 }

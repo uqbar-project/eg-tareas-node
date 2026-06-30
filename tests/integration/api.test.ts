@@ -95,4 +95,76 @@ describe('API integration tests', () => {
     expect(Array.isArray(res.body)).toBe(true)
     expect(res.body.length).toBeGreaterThan(0)
   })
+
+  describe('POST /tareas', () => {
+    it('should create a new task and return 201', async () => {
+      const usuariosResponse = await request(nestApp.getHttpServer()).get(
+        '/usuarios'
+      )
+      const primerUsuario = usuariosResponse.body[0]
+
+      const nuevaTarea = {
+        descripcion: 'Tarea creada desde test de integracion',
+        iteracion: 'Sprint 1',
+        asignadoA: primerUsuario.nombre,
+        fecha: '15/06/2026',
+        porcentajeCumplimiento: 0,
+      }
+
+      const createResponse = await request(nestApp.getHttpServer())
+        .post('/tareas')
+        .send(nuevaTarea)
+
+      expect(createResponse.status).toBe(201)
+      expect(createResponse.body).toHaveProperty('id')
+      expect(createResponse.body.descripcion).toBe(
+        'Tarea creada desde test de integracion'
+      )
+      expect(createResponse.body.iteracion).toBe('Sprint 1')
+      expect(createResponse.body.asignadoA).toBe(primerUsuario.nombre)
+    })
+
+    it('should return 404 when the assigned user does not exist', async () => {
+      const nuevaTarea = {
+        descripcion: 'Tarea con usuario inexistente',
+        iteracion: 'Sprint 1',
+        asignadoA: 'Usuario Inexistente Xyz123',
+        fecha: '15/06/2026',
+        porcentajeCumplimiento: 0,
+      }
+
+      const createResponse = await request(nestApp.getHttpServer())
+        .post('/tareas')
+        .send(nuevaTarea)
+
+      expect(createResponse.status).toBe(404)
+    })
+  })
+
+  describe('DELETE /tareas/:id', () => {
+    it('should delete an existing task', async () => {
+      const listResponse = await request(nestApp.getHttpServer()).get('/tareas')
+      const tareas = listResponse.body.data
+      expect(tareas.length).toBeGreaterThan(0)
+
+      const idParaEliminar = tareas[0].id
+      const deleteResponse = await request(nestApp.getHttpServer()).delete(
+        `/tareas/${idParaEliminar}`
+      )
+
+      expect(deleteResponse.status).toBe(200)
+
+      const getResponse = await request(nestApp.getHttpServer()).get(
+        `/tareas/${idParaEliminar}`
+      )
+      expect(getResponse.status).toBe(404)
+    })
+
+    it('should return 404 when the task does not exist', async () => {
+      const deleteResponse = await request(nestApp.getHttpServer()).delete(
+        '/tareas/999999'
+      )
+      expect(deleteResponse.status).toBe(404)
+    })
+  })
 })

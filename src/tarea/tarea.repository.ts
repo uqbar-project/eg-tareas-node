@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/es'
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { Tarea } from '../domain/tarea.js'
 
 let ultimoId = 1
@@ -23,8 +23,8 @@ export class TareaRepository {
   private tareas: Tarea[] = generarTareas(450)
 
   async getTareas(): Promise<Tarea[]> {
-    return this.tareas.sort((a, b) =>
-      a.descripcion.localeCompare(b.descripcion)
+    return this.tareas.sort((tareaA, tareaB) =>
+      tareaA.descripcion.localeCompare(tareaB.descripcion)
     )
   }
 
@@ -38,5 +38,21 @@ export class TareaRepository {
     )
     this.tareas[indexTarea] = tarea
     return tarea
+  }
+
+  async createTarea(tarea: Tarea): Promise<Tarea> {
+    tarea.id = ultimoId++
+    this.tareas.push(tarea)
+    return tarea
+  }
+
+  async deleteTarea(id: number): Promise<void> {
+    const indexEncontrado = this.tareas.findIndex(
+      tareaPorBuscar => tareaPorBuscar.id === id
+    )
+    if (indexEncontrado === -1) {
+      throw new NotFoundException(`Tarea ${id} no encontrada`)
+    }
+    this.tareas.splice(indexEncontrado, 1)
   }
 }
