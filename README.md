@@ -242,7 +242,7 @@ export class TareasService {
 
 ### Generación de datos de prueba
 
-La biblioteca `faker` nos sirve para crear primero 50 usuarios y luego 450 tareas:
+La biblioteca `faker` nos sirve para crear primero 50 usuarios y luego 450 tareas. Al generar cada tarea, con ~70% de probabilidad se le asigna un usuario al azar (`TareaRepository` inyecta `UsuarioRepository` para eso), así conviven tareas asignadas y sin asignar. Al ser datos en memoria, el servidor arranca con datos precargados listos para consultar y modificar.
 ```ts
 const crearUsuarioFalso = (): Usuario => {
   const usuario = new Usuario()
@@ -260,7 +260,7 @@ export class UsuarioRepository {
   private usuarios: Usuario[] = generarUsuarios()
 ```
 
-Lo mismo ocurre con el repositorio de tareas. Al ser datos en memoria, el servidor arranca con datos precargados listos para consultar y modificar.
+Lo mismo ocurre con el repositorio de tareas, con el agregado de la asignación aleatoria de usuarios que mencionamos arriba.
 
 ### Testeo de integración
 

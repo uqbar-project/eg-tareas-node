@@ -1,2 +1,14 @@
 packages:
   - .
+
+# Fija multer (transitiva de @nestjs/platform-express) por seguridad.
+# En pnpm 10+ los overrides viven acá, no en el campo `pnpm` de package.json.
+overrides:
+  multer: 2.2.0
+
+# pnpm 9+ no ejecuta scripts de postinstall por defecto por seguridad.
+# Aquí solo autorizamos `esbuild`, que lo necesita @nestjs/cli para
+# compilar (swc/esbuild). Si agregás una dep que requiera build scripts,
+# pnpm te va a avisar y la sumás explícitamente a esta lista.
+allowBuilds:
+  esbuild: true

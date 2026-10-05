@@ -28,12 +28,10 @@ export class TareasService {
     const allTareas = await this.tareaRepository.getTareas()
     const toDTO = (tarea: Tarea) => tarea.toDto()
     if (limit === 0) return { page, hasMore: false, data: allTareas.map(toDTO) }
-    const queryLimit = limit + 1
     const startIndex = (page - 1) * limit
-    const dataConExtra = allTareas.slice(startIndex, startIndex + queryLimit)
+    const dataConExtra = allTareas.slice(startIndex, startIndex + limit + 1)
     const hasMore = dataConExtra.length > limit
-    const dataPaginada = allTareas.slice((page - 1) * limit, page * limit)
-    return { page, hasMore, data: dataPaginada.map(toDTO) }
+    return { page, hasMore, data: dataConExtra.slice(0, limit).map(toDTO) }
   }
 
   async updateTarea(id: number, dto: TareaDto): Promise<TareaDto> {
@@ -50,6 +48,8 @@ export class TareasService {
       if (!nuevoAsignatario)
         throw new NotFoundException(`Usuario ${dto.asignadoA} no encontrado`)
       tarea.asignatario = nuevoAsignatario
+    } else {
+      tarea.asignatario = null
     }
     tarea.fecha = parse(dto.fecha, 'dd/MM/yyyy', new Date())
     tarea.porcentajeCumplimiento = dto.porcentajeCumplimiento

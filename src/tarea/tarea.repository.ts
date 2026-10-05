@@ -1,26 +1,44 @@
 import { faker } from '@faker-js/faker/locale/es'
 import { Injectable, NotFoundException } from '@nestjs/common'
+import type { Usuario } from '../domain/tarea.js'
 import { Tarea } from '../domain/tarea.js'
+import { UsuarioRepository } from '../usuario/usuario.repository.js'
 
 let ultimoId = 1
 
-const crearTareaFalsa = (): Tarea => {
+const PROBABILIDAD_TAREA_ASIGNADA = 0.7
+
+const crearTareaFalsa = (pickUsuario: () => Usuario | undefined): Tarea => {
   const tarea = new Tarea()
   tarea.id = ultimoId++
   tarea.descripcion = faker.lorem.sentence(5)
   tarea.iteracion = `Sprint ${faker.number.int({ min: 1, max: 4 })}`
   tarea.fecha = faker.date.recent({ days: 30 })
   tarea.porcentajeCumplimiento = faker.number.int({ min: 0, max: 100 })
+  if (Math.random() < PROBABILIDAD_TAREA_ASIGNADA) {
+    const usuario = pickUsuario()
+    if (usuario) tarea.asignatario = usuario
+  }
 
   return tarea
 }
 
-const generarTareas = (cantidad: number = 10): Tarea[] =>
-  Array.from({ length: cantidad }, crearTareaFalsa)
+const generarTareas = (
+  pickUsuario: () => Usuario | undefined,
+  cantidad: number = 10
+): Tarea[] =>
+  Array.from({ length: cantidad }, () => crearTareaFalsa(pickUsuario))
 
 @Injectable()
 export class TareaRepository {
-  private tareas: Tarea[] = generarTareas(450)
+  private tareas: Tarea[]
+
+  constructor(private readonly usuarioRepository: UsuarioRepository) {
+    this.tareas = generarTareas(
+      () => this.usuarioRepository.getRandomUsuario(),
+      450
+    )
+  }
 
   async getTareas(): Promise<Tarea[]> {
     return this.tareas.sort((tareaA, tareaB) =>

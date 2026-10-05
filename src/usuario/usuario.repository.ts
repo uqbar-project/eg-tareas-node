@@ -17,10 +17,14 @@ const generarUsuarios = (cantidad: number = 50) =>
 export class UsuarioRepository {
   private usuarios: Usuario[] = generarUsuarios()
 
-  async getAnyUsuario() {
-    if (this.usuarios.length === 0) throw new Error('Empty user list')
+  getRandomUsuario(): Usuario | undefined {
+    if (this.usuarios.length === 0) return undefined
     const randomNumber = Math.trunc(Math.random() * this.usuarios.length)
-    const usuario = this.usuarios[randomNumber]
+    return this.usuarios[randomNumber]
+  }
+
+  async getAnyUsuario() {
+    const usuario = this.getRandomUsuario()
     if (!usuario) throw new Error('Empty user list')
     return usuario
   }
