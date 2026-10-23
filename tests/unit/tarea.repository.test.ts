@@ -18,7 +18,7 @@ describe('TareaRepository', () => {
   })
 
   describe('updateTarea', () => {
-    it('should replace the stored tarea with the given one', async () => {
+    it('should replace the stored task with the given one', async () => {
       const tarea = tareaExistente.clonar()
       tarea.descripcion = 'Descripcion persistida'
       await repo.updateTarea(tarea)
@@ -29,7 +29,7 @@ describe('TareaRepository', () => {
   })
 
   describe('deleteTarea', () => {
-    it('should remove the tarea with the given id', async () => {
+    it('should remove the task with the given id', async () => {
       const cantidadInicial = (await repo.getTareas()).length
       await repo.deleteTarea(tareaExistente.id)
 

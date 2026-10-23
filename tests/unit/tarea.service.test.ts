@@ -61,7 +61,7 @@ describe('TareasService', () => {
       )
     })
 
-    it('should throw NotFoundException when asignadoA does not exist', async () => {
+    it('should throw NotFoundException when the assigned person does not exist', async () => {
       const tareas = await tareaRepo.getTareas()
       const tarea = tareas[0] as Tarea
       const dto = {
@@ -77,7 +77,7 @@ describe('TareasService', () => {
       )
     })
 
-    it('should update task with valid asignadoA', async () => {
+    it('should update a task with a valid assigned person', async () => {
       const tareas = await tareaRepo.getTareas()
       const tarea = tareas[0] as Tarea
       const usuarios = await usuarioRepo.getUsuarios()
@@ -120,7 +120,7 @@ describe('TareasService', () => {
       expect(almacenada.porcentajeCumplimiento).toBe(porcentajeOriginal)
     })
 
-    it('should update task without asignadoA', async () => {
+    it('should update a task without an assigned person', async () => {
       const tareas = await tareaRepo.getTareas()
       const tarea = tareas[0] as Tarea
       const dto = {
@@ -155,7 +155,7 @@ describe('TareasService', () => {
   })
 
   describe('createTarea', () => {
-    it('should throw NotFoundException when asignadoA does not exist', async () => {
+    it('should throw NotFoundException when the assigned person does not exist', async () => {
       const dto = {
         id: 0,
         descripcion: 'Nueva tarea',
@@ -167,7 +167,7 @@ describe('TareasService', () => {
       await expect(service.createTarea(dto)).rejects.toThrow(NotFoundException)
     })
 
-    it('should create task with valid asignadoA', async () => {
+    it('should create a task with a valid assigned person', async () => {
       const usuarios = await usuarioRepo.getUsuarios()
       const usuario = usuarios[0] as Usuario
       const dto = {
@@ -185,7 +185,7 @@ describe('TareasService', () => {
       expect(result.fecha).toBe('24/06/2026')
     })
 
-    it('should create task without asignadoA', async () => {
+    it('should create a task without an assigned person', async () => {
       const dto = {
         id: 0,
         descripcion: 'Sin asignatario',
