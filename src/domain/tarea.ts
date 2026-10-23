@@ -1,4 +1,7 @@
 import { BadRequestException } from '@nestjs/common'
+import { parse } from 'date-fns'
+
+const FORMATO_FECHA = 'dd/MM/yyyy'
 
 export class Usuario {
   id: string = ''
@@ -13,6 +16,15 @@ export class Tarea {
   asignatario: Usuario | null = null
   fecha: Date = new Date()
   porcentajeCumplimiento: number = 0
+
+  actualizarDesde(dto: TareaDto, asignatario: Usuario | null): void {
+    this.descripcion = dto.descripcion
+    this.iteracion = dto.iteracion
+    this.asignatario = asignatario
+    this.fecha = parse(dto.fecha, FORMATO_FECHA, new Date())
+    this.porcentajeCumplimiento = dto.porcentajeCumplimiento
+    this.validar()
+  }
 
   toDto(): TareaDto {
     return {

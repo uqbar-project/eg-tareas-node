@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common'
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Tarea, Usuario } from '../../src/domain/tarea.js'
@@ -112,6 +112,65 @@ describe('TareasService', () => {
       const result = await service.updateTarea(tarea.id, dto)
       expect(result.descripcion).toBe('Sin asignatario')
       expect(result.asignadoA).toBeUndefined()
+    })
+  })
+
+  describe('createTarea', () => {
+    it('should throw NotFoundException when asignadoA does not exist', async () => {
+      const dto = {
+        id: 0,
+        descripcion: 'Nueva tarea',
+        iteracion: 'Sprint 1',
+        asignadoA: 'NonExistentUser',
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 0,
+      }
+      await expect(service.createTarea(dto)).rejects.toThrow(NotFoundException)
+    })
+
+    it('should create task with valid asignadoA', async () => {
+      const usuarios = await usuarioRepo.getUsuarios()
+      const usuario = usuarios[0] as Usuario
+      const dto = {
+        id: 0,
+        descripcion: 'Nueva tarea',
+        iteracion: 'Sprint 1',
+        asignadoA: usuario.nombre,
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 10,
+      }
+      const result = await service.createTarea(dto)
+      expect(result.id).toBeGreaterThan(0)
+      expect(result.descripcion).toBe('Nueva tarea')
+      expect(result.asignadoA).toBe(usuario.nombre)
+      expect(result.fecha).toBe('24/06/2026')
+    })
+
+    it('should create task without asignadoA', async () => {
+      const dto = {
+        id: 0,
+        descripcion: 'Sin asignatario',
+        iteracion: 'Sprint 1',
+        asignadoA: undefined,
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 0,
+      }
+      const result = await service.createTarea(dto)
+      expect(result.asignadoA).toBeUndefined()
+    })
+
+    it('should throw BadRequestException when dto is invalid', async () => {
+      const dto = {
+        id: 0,
+        descripcion: '',
+        iteracion: 'Sprint 1',
+        asignadoA: undefined,
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 0,
+      }
+      await expect(service.createTarea(dto)).rejects.toThrow(
+        BadRequestException
+      )
     })
   })
 })

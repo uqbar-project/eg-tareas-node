@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { parse } from 'date-fns'
-import type { TareaDto } from '../domain/tarea.js'
+import type { TareaDto, Usuario } from '../domain/tarea.js'
 import { Tarea } from '../domain/tarea.js'
 import { UsuarioRepository } from '../usuario/usuario.repository.js'
 import { TareaRepository } from './tarea.repository.js'
@@ -39,45 +38,32 @@ export class TareasService {
     if (!tarea) {
       throw new NotFoundException(`Tarea ${id} no encontrada`)
     }
-    tarea.descripcion = dto.descripcion
-    tarea.iteracion = dto.iteracion
-    if (dto.asignadoA) {
-      const nuevoAsignatario = await this.usuarioRepository.getUsuarioByNombre(
-        dto.asignadoA
-      )
-      if (!nuevoAsignatario)
-        throw new NotFoundException(`Usuario ${dto.asignadoA} no encontrado`)
-      tarea.asignatario = nuevoAsignatario
-    } else {
-      tarea.asignatario = null
-    }
-    tarea.fecha = parse(dto.fecha, 'dd/MM/yyyy', new Date())
-    tarea.porcentajeCumplimiento = dto.porcentajeCumplimiento
-    tarea.validar()
+    tarea.actualizarDesde(dto, await this.resolverAsignatario(dto.asignadoA))
     this.tareaRepository.updateTarea(tarea)
     return tarea.toDto()
   }
 
   async createTarea(dto: TareaDto): Promise<TareaDto> {
     const nuevaTarea = new Tarea()
-    nuevaTarea.descripcion = dto.descripcion
-    nuevaTarea.iteracion = dto.iteracion
-    if (dto.asignadoA) {
-      const asignatario = await this.usuarioRepository.getUsuarioByNombre(
-        dto.asignadoA
-      )
-      if (!asignatario)
-        throw new NotFoundException(`Usuario ${dto.asignadoA} no encontrado`)
-      nuevaTarea.asignatario = asignatario
-    }
-    nuevaTarea.fecha = parse(dto.fecha, 'dd/MM/yyyy', new Date())
-    nuevaTarea.porcentajeCumplimiento = dto.porcentajeCumplimiento
-    nuevaTarea.validar()
+    nuevaTarea.actualizarDesde(
+      dto,
+      await this.resolverAsignatario(dto.asignadoA)
+    )
     const tareaCreada = await this.tareaRepository.createTarea(nuevaTarea)
     return tareaCreada.toDto()
   }
 
   async deleteTarea(id: number): Promise<void> {
     await this.tareaRepository.deleteTarea(id)
+  }
+
+  private async resolverAsignatario(
+    nombre: string | undefined
+  ): Promise<Usuario | null> {
+    if (!nombre) return null
+    const asignatario = await this.usuarioRepository.getUsuarioByNombre(nombre)
+    if (!asignatario)
+      throw new NotFoundException(`Usuario ${nombre} no encontrado`)
+    return asignatario
   }
 }

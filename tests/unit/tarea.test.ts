@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { Tarea } from '../../src/domain/tarea.js'
+import { Tarea, Usuario } from '../../src/domain/tarea.js'
 
 describe('Tarea', () => {
   let tarea: Tarea
@@ -71,6 +71,52 @@ describe('Tarea', () => {
     it('should throw when fecha is invalid', () => {
       tarea.fecha = new Date('invalid')
       expect(() => tarea.validar()).toThrow('La fecha debe ser válida')
+    })
+  })
+
+  describe('actualizarDesde', () => {
+    const dto = {
+      id: 0,
+      descripcion: 'Descripción nueva',
+      iteracion: 'Sprint 2',
+      asignadoA: undefined,
+      fecha: '24/06/2026',
+      porcentajeCumplimiento: 80,
+    }
+
+    it('should copy every field from dto and parse fecha as dd/MM/yyyy', () => {
+      tarea.actualizarDesde(dto, null)
+      expect(tarea.descripcion).toBe('Descripción nueva')
+      expect(tarea.iteracion).toBe('Sprint 2')
+      expect(tarea.porcentajeCumplimiento).toBe(80)
+      expect(tarea.fecha.getFullYear()).toBe(2026)
+      expect(tarea.fecha.getMonth()).toBe(5)
+      expect(tarea.fecha.getDate()).toBe(24)
+    })
+
+    it('should set the given asignatario', () => {
+      const usuario = new Usuario()
+      usuario.nombre = 'Ana'
+      tarea.actualizarDesde(dto, usuario)
+      expect(tarea.asignatario).toBe(usuario)
+    })
+
+    it('should clear the previous asignatario when null is given', () => {
+      tarea.asignatario = new Usuario()
+      tarea.actualizarDesde(dto, null)
+      expect(tarea.asignatario).toBeNull()
+    })
+
+    it('should validate after copying', () => {
+      expect(() =>
+        tarea.actualizarDesde({ ...dto, porcentajeCumplimiento: 150 }, null)
+      ).toThrow('El porcentaje de cumplimiento debe estar entre 0 y 100')
+    })
+
+    it('should throw when fecha has an invalid format', () => {
+      expect(() =>
+        tarea.actualizarDesde({ ...dto, fecha: '2026-06-24' }, null)
+      ).toThrow('La fecha debe ser válida')
     })
   })
 })
