@@ -32,9 +32,12 @@ export class TareasService {
     return { page, hasMore, data: dataConExtra.slice(0, limit).map(toDTO) }
   }
 
+  /**
+   * Actualiza una copia de la tarea y la guarda cuando supera la validación.
+   * El repositorio en memoria devuelve la instancia almacenada; trabajar sobre
+   * un clon evita modificarla si la validación falla.
+   */
   async updateTarea(id: number, dto: TareaDto): Promise<TareaDto> {
-    // El repositorio devuelve la instancia almacenada. Trabajamos sobre una
-    // copia para que, si la validación falla, lo almacenado quede intacto.
     const tarea = (await this.buscarTarea(id)).clonar()
     tarea.actualizarDesde(dto, await this.resolverAsignatario(dto.asignadoA))
     await this.tareaRepository.updateTarea(tarea)
