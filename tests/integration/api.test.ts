@@ -89,6 +89,29 @@ describe('API integration tests', () => {
     expect(putRes.body.descripcion).toBe('Descripcion actualizada desde test')
   })
 
+  it('PUT /tareas/:id with invalid data should return 400 and keep the stored task untouched', async () => {
+    const listRes = await request(nestApp.getHttpServer()).get('/tareas')
+    const original = listRes.body.data[0]
+
+    const putRes = await request(nestApp.getHttpServer())
+      .put(`/tareas/${original.id}`)
+      .send({
+        ...original,
+        descripcion: 'Descripcion rechazada',
+        porcentajeCumplimiento: 150,
+      })
+    expect(putRes.status).toBe(400)
+
+    const getRes = await request(nestApp.getHttpServer()).get(
+      `/tareas/${original.id}`
+    )
+    expect(getRes.status).toBe(200)
+    expect(getRes.body.descripcion).toBe(original.descripcion)
+    expect(getRes.body.porcentajeCumplimiento).toBe(
+      original.porcentajeCumplimiento
+    )
+  })
+
   it('GET /usuarios should return an array of users', async () => {
     const res = await request(nestApp.getHttpServer()).get('/usuarios')
     expect(res.status).toBe(200)

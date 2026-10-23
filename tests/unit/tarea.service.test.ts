@@ -98,6 +98,28 @@ describe('TareasService', () => {
       expect(result.porcentajeCumplimiento).toBe(75)
     })
 
+    it('should keep the stored task untouched when the dto is invalid', async () => {
+      const tareas = await tareaRepo.getTareas()
+      const tarea = tareas[0] as Tarea
+      const descripcionOriginal = tarea.descripcion
+      const porcentajeOriginal = tarea.porcentajeCumplimiento
+      const dto = {
+        id: tarea.id,
+        descripcion: 'Descripcion rechazada',
+        iteracion: 'Sprint 9',
+        asignadoA: undefined,
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 150,
+      }
+      await expect(service.updateTarea(tarea.id, dto)).rejects.toThrow(
+        BadRequestException
+      )
+
+      const almacenada = await service.getTareaById(tarea.id)
+      expect(almacenada.descripcion).toBe(descripcionOriginal)
+      expect(almacenada.porcentajeCumplimiento).toBe(porcentajeOriginal)
+    })
+
     it('should update task without asignadoA', async () => {
       const tareas = await tareaRepo.getTareas()
       const tarea = tareas[0] as Tarea
@@ -112,6 +134,23 @@ describe('TareasService', () => {
       const result = await service.updateTarea(tarea.id, dto)
       expect(result.descripcion).toBe('Sin asignatario')
       expect(result.asignadoA).toBeUndefined()
+    })
+  })
+
+  describe('deleteTarea', () => {
+    it('should throw NotFoundException when task does not exist', async () => {
+      await expect(service.deleteTarea(999999)).rejects.toThrow(
+        NotFoundException
+      )
+    })
+
+    it('should delete an existing task', async () => {
+      const tareas = await tareaRepo.getTareas()
+      const tarea = tareas[0] as Tarea
+      await service.deleteTarea(tarea.id)
+      await expect(service.getTareaById(tarea.id)).rejects.toThrow(
+        NotFoundException
+      )
     })
   })
 

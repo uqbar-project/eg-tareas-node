@@ -26,6 +26,10 @@ export class Tarea {
     this.validar()
   }
 
+  clonar(): Tarea {
+    return Object.assign(new Tarea(), this)
+  }
+
   toDto(): TareaDto {
     return {
       id: this.id,

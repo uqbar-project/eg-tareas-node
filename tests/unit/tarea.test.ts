@@ -74,6 +74,26 @@ describe('Tarea', () => {
     })
   })
 
+  describe('clonar', () => {
+    it('should return a Tarea instance with the same fields', () => {
+      tarea.id = 7
+      tarea.iteracion = 'Sprint 1'
+      tarea.asignatario = new Usuario()
+      const clon = tarea.clonar()
+      expect(clon).toBeInstanceOf(Tarea)
+      expect(clon).not.toBe(tarea)
+      expect(clon).toEqual(tarea)
+    })
+
+    it('should not propagate changes made on the clone to the original', () => {
+      const clon = tarea.clonar()
+      clon.descripcion = 'Modificada en el clon'
+      clon.porcentajeCumplimiento = 99
+      expect(tarea.descripcion).toBe('Tarea de prueba')
+      expect(tarea.porcentajeCumplimiento).toBe(50)
+    })
+  })
+
   describe('actualizarDesde', () => {
     const dto = {
       id: 0,

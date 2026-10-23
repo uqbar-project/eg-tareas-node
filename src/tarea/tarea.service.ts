@@ -17,9 +17,8 @@ export class TareasService {
     private readonly usuarioRepository: UsuarioRepository
   ) {}
 
-  async getTareaById(id: number) {
-    const tarea = await this.tareaRepository.getTareaById(id)
-    if (!tarea) throw new NotFoundException(`Tarea ${id} no encontrada`)
+  async getTareaById(id: number): Promise<TareaDto> {
+    const tarea = await this.buscarTarea(id)
     return tarea.toDto()
   }
 
@@ -34,12 +33,9 @@ export class TareasService {
   }
 
   async updateTarea(id: number, dto: TareaDto): Promise<TareaDto> {
-    const tarea = await this.tareaRepository.getTareaById(id)
-    if (!tarea) {
-      throw new NotFoundException(`Tarea ${id} no encontrada`)
-    }
+    const tarea = await this.buscarTarea(id)
     tarea.actualizarDesde(dto, await this.resolverAsignatario(dto.asignadoA))
-    this.tareaRepository.updateTarea(tarea)
+    await this.tareaRepository.updateTarea(tarea)
     return tarea.toDto()
   }
 
@@ -54,7 +50,14 @@ export class TareasService {
   }
 
   async deleteTarea(id: number): Promise<void> {
+    await this.buscarTarea(id)
     await this.tareaRepository.deleteTarea(id)
+  }
+
+  private async buscarTarea(id: number): Promise<Tarea> {
+    const tarea = await this.tareaRepository.getTareaById(id)
+    if (!tarea) throw new NotFoundException(`Tarea ${id} no encontrada`)
+    return tarea
   }
 
   private async resolverAsignatario(
