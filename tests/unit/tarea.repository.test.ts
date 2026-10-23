@@ -17,39 +17,9 @@ describe('TareaRepository', () => {
     tareaExistente = (await repo.getTareas())[0] as Tarea
   })
 
-  describe('getTareaById', () => {
-    it('should return a different instance on every read', async () => {
-      const primeraLectura = await repo.getTareaById(tareaExistente.id)
-      const segundaLectura = await repo.getTareaById(tareaExistente.id)
-      expect(primeraLectura).toBeDefined()
-      expect(primeraLectura).not.toBe(segundaLectura)
-      expect(primeraLectura).toEqual(segundaLectura)
-    })
-
-    it('should not persist changes made on the returned tarea', async () => {
-      const descripcionOriginal = tareaExistente.descripcion
-      const tarea = (await repo.getTareaById(tareaExistente.id)) as Tarea
-      tarea.descripcion = 'Cambio que no debe persistir'
-
-      const releida = (await repo.getTareaById(tareaExistente.id)) as Tarea
-      expect(releida.descripcion).toBe(descripcionOriginal)
-    })
-  })
-
-  describe('getTareas', () => {
-    it('should not persist changes made on the returned tareas', async () => {
-      const tareas = await repo.getTareas()
-      const tarea = tareas[0] as Tarea
-      tarea.descripcion = 'Cambio que no debe persistir'
-
-      const releida = (await repo.getTareaById(tarea.id)) as Tarea
-      expect(releida.descripcion).not.toBe('Cambio que no debe persistir')
-    })
-  })
-
   describe('updateTarea', () => {
-    it('should persist the given tarea', async () => {
-      const tarea = (await repo.getTareaById(tareaExistente.id)) as Tarea
+    it('should replace the stored tarea with the given one', async () => {
+      const tarea = tareaExistente.clonar()
       tarea.descripcion = 'Descripcion persistida'
       await repo.updateTarea(tarea)
 

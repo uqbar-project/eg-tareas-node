@@ -18,7 +18,7 @@ export class TareasService {
   ) {}
 
   async getTareaById(id: number): Promise<TareaDto> {
-    const tarea = await this.buscarTarea(id)
+    const tarea = (await this.buscarTarea(id)).clonar()
     return tarea.toDto()
   }
 
@@ -33,7 +33,9 @@ export class TareasService {
   }
 
   async updateTarea(id: number, dto: TareaDto): Promise<TareaDto> {
-    const tarea = await this.buscarTarea(id)
+    // El repositorio devuelve la instancia almacenada. Trabajamos sobre una
+    // copia para que, si la validación falla, lo almacenado quede intacto.
+    const tarea = (await this.buscarTarea(id)).clonar()
     tarea.actualizarDesde(dto, await this.resolverAsignatario(dto.asignadoA))
     await this.tareaRepository.updateTarea(tarea)
     return tarea.toDto()

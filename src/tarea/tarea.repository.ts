@@ -41,15 +41,13 @@ export class TareaRepository {
   }
 
   async getTareas(): Promise<Tarea[]> {
-    return this.tareas
-      .map(tarea => tarea.clonar())
-      .sort((tareaA, tareaB) =>
-        tareaA.descripcion.localeCompare(tareaB.descripcion)
-      )
+    return this.tareas.sort((tareaA, tareaB) =>
+      tareaA.descripcion.localeCompare(tareaB.descripcion)
+    )
   }
 
   async getTareaById(id: number): Promise<Tarea | undefined> {
-    return this.tareas.find(tarea => tarea.id === id)?.clonar()
+    return this.tareas.find(tarea => tarea.id === id)
   }
 
   async updateTarea(tarea: Tarea): Promise<Tarea> {
