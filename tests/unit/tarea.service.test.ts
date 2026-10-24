@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common'
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Tarea, Usuario } from '../../src/domain/tarea.js'
@@ -61,7 +61,7 @@ describe('TareasService', () => {
       )
     })
 
-    it('should throw NotFoundException when asignadoA does not exist', async () => {
+    it('should throw NotFoundException when the assigned person does not exist', async () => {
       const tareas = await tareaRepo.getTareas()
       const tarea = tareas[0] as Tarea
       const dto = {
@@ -77,7 +77,7 @@ describe('TareasService', () => {
       )
     })
 
-    it('should update task with valid asignadoA', async () => {
+    it('should update a task with a valid assigned person', async () => {
       const tareas = await tareaRepo.getTareas()
       const tarea = tareas[0] as Tarea
       const usuarios = await usuarioRepo.getUsuarios()
@@ -98,7 +98,29 @@ describe('TareasService', () => {
       expect(result.porcentajeCumplimiento).toBe(75)
     })
 
-    it('should update task without asignadoA', async () => {
+    it('should keep the stored task untouched when the dto is invalid', async () => {
+      const tareas = await tareaRepo.getTareas()
+      const tarea = tareas[0] as Tarea
+      const descripcionOriginal = tarea.descripcion
+      const porcentajeOriginal = tarea.porcentajeCumplimiento
+      const dto = {
+        id: tarea.id,
+        descripcion: 'Descripcion rechazada',
+        iteracion: 'Sprint 9',
+        asignadoA: undefined,
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 150,
+      }
+      await expect(service.updateTarea(tarea.id, dto)).rejects.toThrow(
+        BadRequestException
+      )
+
+      const almacenada = await service.getTareaById(tarea.id)
+      expect(almacenada.descripcion).toBe(descripcionOriginal)
+      expect(almacenada.porcentajeCumplimiento).toBe(porcentajeOriginal)
+    })
+
+    it('should update a task without an assigned person', async () => {
       const tareas = await tareaRepo.getTareas()
       const tarea = tareas[0] as Tarea
       const dto = {
@@ -112,6 +134,82 @@ describe('TareasService', () => {
       const result = await service.updateTarea(tarea.id, dto)
       expect(result.descripcion).toBe('Sin asignatario')
       expect(result.asignadoA).toBeUndefined()
+    })
+  })
+
+  describe('deleteTarea', () => {
+    it('should throw NotFoundException when task does not exist', async () => {
+      await expect(service.deleteTarea(999999)).rejects.toThrow(
+        NotFoundException
+      )
+    })
+
+    it('should delete an existing task', async () => {
+      const tareas = await tareaRepo.getTareas()
+      const tarea = tareas[0] as Tarea
+      await service.deleteTarea(tarea.id)
+      await expect(service.getTareaById(tarea.id)).rejects.toThrow(
+        NotFoundException
+      )
+    })
+  })
+
+  describe('createTarea', () => {
+    it('should throw NotFoundException when the assigned person does not exist', async () => {
+      const dto = {
+        id: 0,
+        descripcion: 'Nueva tarea',
+        iteracion: 'Sprint 1',
+        asignadoA: 'NonExistentUser',
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 0,
+      }
+      await expect(service.createTarea(dto)).rejects.toThrow(NotFoundException)
+    })
+
+    it('should create a task with a valid assigned person', async () => {
+      const usuarios = await usuarioRepo.getUsuarios()
+      const usuario = usuarios[0] as Usuario
+      const dto = {
+        id: 0,
+        descripcion: 'Nueva tarea',
+        iteracion: 'Sprint 1',
+        asignadoA: usuario.nombre,
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 10,
+      }
+      const result = await service.createTarea(dto)
+      expect(result.id).toBeGreaterThan(0)
+      expect(result.descripcion).toBe('Nueva tarea')
+      expect(result.asignadoA).toBe(usuario.nombre)
+      expect(result.fecha).toBe('24/06/2026')
+    })
+
+    it('should create a task without an assigned person', async () => {
+      const dto = {
+        id: 0,
+        descripcion: 'Sin asignatario',
+        iteracion: 'Sprint 1',
+        asignadoA: undefined,
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 0,
+      }
+      const result = await service.createTarea(dto)
+      expect(result.asignadoA).toBeUndefined()
+    })
+
+    it('should throw BadRequestException when dto is invalid', async () => {
+      const dto = {
+        id: 0,
+        descripcion: '',
+        iteracion: 'Sprint 1',
+        asignadoA: undefined,
+        fecha: '24/06/2026',
+        porcentajeCumplimiento: 0,
+      }
+      await expect(service.createTarea(dto)).rejects.toThrow(
+        BadRequestException
+      )
     })
   })
 })

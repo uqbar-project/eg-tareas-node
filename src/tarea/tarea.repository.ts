@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/es'
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { Usuario } from '../domain/tarea.js'
 import { Tarea } from '../domain/tarea.js'
 import { UsuarioRepository } from '../usuario/usuario.repository.js'
@@ -50,7 +50,7 @@ export class TareaRepository {
     return this.tareas.find(tarea => tarea.id === id)
   }
 
-  async updateTarea(tarea: Tarea) {
+  async updateTarea(tarea: Tarea): Promise<Tarea> {
     const indexTarea = this.tareas.findIndex(
       tareaSearch => tareaSearch.id === tarea.id
     )
@@ -65,12 +65,6 @@ export class TareaRepository {
   }
 
   async deleteTarea(id: number): Promise<void> {
-    const indexEncontrado = this.tareas.findIndex(
-      tareaPorBuscar => tareaPorBuscar.id === id
-    )
-    if (indexEncontrado === -1) {
-      throw new NotFoundException(`Tarea ${id} no encontrada`)
-    }
-    this.tareas.splice(indexEncontrado, 1)
+    this.tareas = this.tareas.filter(tarea => tarea.id !== id)
   }
 }
