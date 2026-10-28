@@ -12,6 +12,14 @@
 
 Antes de levantar el servidor, asegurate de tener instalado Node.js y las dependencias del proyecto.
 
+Copiá `.env.example` a `.env` y configurá `ACEPTA_PAGINADO`:
+
+```env
+ACEPTA_PAGINADO=true
+```
+
+Con `true` (valor predeterminado) `GET /tareas` devuelve la respuesta paginada. Con `false` devuelve directamente el arreglo de tareas, sin `page`, `hasMore` ni `data`; en ese modo, enviar `page` o `limit` devuelve un error `400`. Al iniciar, el servidor informa con emojis si el paginado está activo y la cantidad inicial de tareas y usuarios.
+
 ### Instalar Node.js con nvm (opcional)
 
 Si usás nvm para manejar versiones de Node.js:
@@ -50,7 +58,7 @@ pnpm lint
 
 ## Explicación general
 
-En esta variante en Node agregamos servicios de paginación para lo cual, a la hora de pedir las tareas, agregamos como parámetro
+En esta variante en Node agregamos servicios de paginación opcionales, configurables mediante `ACEPTA_PAGINADO` en `.env`. Cuando están habilitados, a la hora de pedir las tareas agregamos como parámetro
 
 - el número de la página
 - y el límite de tareas por página

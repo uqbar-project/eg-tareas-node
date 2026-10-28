@@ -10,6 +10,7 @@ import {
   Query,
 } from '@nestjs/common'
 import type { TareaDto } from '../domain/tarea.js'
+import { paginadoActivo } from './paginado.js'
 import { TareasService } from './tarea.service.js'
 
 @Controller('tareas')
@@ -41,9 +42,17 @@ export class TareaController {
     @Query('page') page?: string,
     @Query('limit') limit?: string
   ) {
+    const paginationEnabled = paginadoActivo()
+    if (!paginationEnabled && (page !== undefined || limit !== undefined)) {
+      throw new BadRequestException(
+        'No se pueden enviar los parámetros page o limit cuando el paginado está desactivado'
+      )
+    }
+    if (!paginationEnabled) return this.tareasService.getTareas()
+
     const pageNum = this.validatePositiveInteger(page, 'page')
     const limitNum = this.validatePositiveInteger(limit, 'limit', true)
-    return this.tareasService.getTareas(pageNum, limitNum)
+    return this.tareasService.getTareas({ page: pageNum, limit: limitNum })
   }
 
   @Get(':id')

@@ -1,6 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Tarea, Usuario } from '../../src/domain/tarea.js'
 import { TareaModule } from '../../src/tarea/tarea.module.js'
 import { TareaRepository } from '../../src/tarea/tarea.repository.js'
@@ -14,12 +14,17 @@ describe('TareasService', () => {
   let usuarioRepo: UsuarioRepository
 
   beforeEach(async () => {
+    vi.stubEnv('ACEPTA_PAGINADO', 'true')
     const module: TestingModule = await Test.createTestingModule({
       imports: [TareaModule, UsuarioModule],
     }).compile()
     service = module.get(TareasService)
     tareaRepo = module.get(TareaRepository)
     usuarioRepo = module.get(UsuarioRepository)
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
   })
 
   describe('getTareaById', () => {
@@ -31,15 +36,36 @@ describe('TareasService', () => {
   })
 
   describe('getTareas', () => {
+    it('should return all tasks when pagination parameters are omitted', async () => {
+      const result = await service.getTareas()
+      const total = (await tareaRepo.getTareas()).length
+
+      if (Array.isArray(result)) throw new Error('Expected paginated results')
+      expect(result.page).toBe(1)
+      expect(result.hasMore).toBe(false)
+      expect(result.data).toHaveLength(total)
+    })
+
     it('should return all tasks when limit is 0', async () => {
-      const result = await service.getTareas(1, 0)
+      const result = await service.getTareas({ page: 1, limit: 0 })
+      if (Array.isArray(result)) throw new Error('Expected paginated results')
       expect(result.hasMore).toBe(false)
       expect(result.data.length).toBeGreaterThan(0)
     })
 
+    it('should return the task list directly when pagination is disabled', async () => {
+      vi.stubEnv('ACEPTA_PAGINADO', 'false')
+
+      const result = await service.getTareas({ page: 1, limit: 10 })
+
+      expect(Array.isArray(result)).toBe(true)
+      expect(result).toHaveLength((await tareaRepo.getTareas()).length)
+    })
+
     it('should paginate with hasMore', async () => {
-      const result = await service.getTareas(1, 10)
+      const result = await service.getTareas({ page: 1, limit: 10 })
       const total = (await tareaRepo.getTareas()).length
+      if (Array.isArray(result)) throw new Error('Expected paginated results')
       expect(result.page).toBe(1)
       expect(result.data.length).toBeLessThanOrEqual(10)
       expect(result.hasMore).toBe(total > 10)

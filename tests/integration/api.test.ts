@@ -10,6 +10,7 @@ describe('API integration tests', () => {
   let nestApp: INestApplication
 
   beforeEach(async () => {
+    vi.stubEnv('ACEPTA_PAGINADO', 'true')
     app = await Test.createTestingModule({
       imports: [AppModule],
     }).compile()
@@ -19,6 +20,7 @@ describe('API integration tests', () => {
 
   afterEach(async () => {
     await nestApp.close()
+    vi.unstubAllEnvs()
   })
 
   it('GET /tareas should return page and data array', async () => {
@@ -28,6 +30,27 @@ describe('API integration tests', () => {
     expect(Array.isArray(res.body.data)).toBe(true)
     expect(res.body.page).toBe(1)
   })
+
+  it('GET /tareas should return an array when pagination is disabled', async () => {
+    vi.stubEnv('ACEPTA_PAGINADO', 'false')
+
+    const res = await request(nestApp.getHttpServer()).get('/tareas')
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+    expect(res.body.length).toBeGreaterThan(0)
+  })
+
+  it.each(['?page=1', '?limit=5', '?page=1&limit=5'])(
+    'GET /tareas should reject pagination parameters when pagination is disabled (%s)',
+    async query => {
+      vi.stubEnv('ACEPTA_PAGINADO', 'false')
+
+      const res = await request(nestApp.getHttpServer()).get(`/tareas${query}`)
+
+      expect(res.status).toBe(400)
+    }
+  )
 
   it('GET /tareas should return second page and data array', async () => {
     const res = await request(nestApp.getHttpServer()).get(

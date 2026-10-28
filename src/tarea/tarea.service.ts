@@ -2,7 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import type { TareaDto, Usuario } from '../domain/tarea.js'
 import { Tarea } from '../domain/tarea.js'
 import { UsuarioRepository } from '../usuario/usuario.repository.js'
+import { paginadoActivo } from './paginado.js'
 import { TareaRepository } from './tarea.repository.js'
+
+export interface OpcionesPaginado {
+  page?: number
+  limit?: number
+}
 
 export interface PageTareas {
   page: number
@@ -22,9 +28,14 @@ export class TareasService {
     return tarea.toDto()
   }
 
-  async getTareas(page: number, limit: number): Promise<PageTareas> {
+  async getTareas(
+    opciones?: OpcionesPaginado
+  ): Promise<PageTareas | TareaDto[]> {
     const allTareas = await this.tareaRepository.getTareas()
     const toDTO = (tarea: Tarea) => tarea.toDto()
+    if (!paginadoActivo()) return allTareas.map(toDTO)
+    const page = opciones?.page ?? 1
+    const limit = opciones?.limit ?? 0
     if (limit === 0) return { page, hasMore: false, data: allTareas.map(toDTO) }
     const startIndex = (page - 1) * limit
     const dataConExtra = allTareas.slice(startIndex, startIndex + limit + 1)
